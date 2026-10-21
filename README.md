@@ -43,13 +43,13 @@ refresh needed.
    `<script type="text/babel">` block, and paste your values in:
    ```js
    const FIREBASE_CONFIG = {
-     apiKey: "AIza...",
-     authDomain: "kaladan-lms.firebaseapp.com",
-     projectId: "kaladan-lms",
-     storageBucket: "kaladan-lms.appspot.com",
-     messagingSenderId: "123456789",
-     appId: "1:123456789:web:abc123",
-   };
+  apiKey: "AIzaSyCvYQjT309pqFWsMwxlVbRuQf5Etar-W2w",
+  authDomain: "kaladan-lms.firebaseapp.com",
+  projectId: "kaladan-lms",
+  storageBucket: "kaladan-lms.firebasestorage.app",
+  messagingSenderId: "64708940391",
+  appId: "1:64708940391:web:607bcc9f0ade01dbe67ac2"
+};
    ```
 7. Push the updated `index.html` to your GitHub repo. Open the app — a small dot
    next to the school name on the login screen (and in the top bar once logged in)
