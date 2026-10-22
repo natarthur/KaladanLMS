@@ -1,0 +1,2640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kaladan E.P Junior High School B — LMS</title>
+<meta name="description" content="Learning Management System for Kaladan E.P Junior High School B.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1E2A4A">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kaladan JHS B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<!-- Optional cloud sync: only activates if FIREBASE_CONFIG below is filled in. See README.md. -->
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    background: #FAF8F4;
+  }
+  .font-serif { font-family: 'Source Serif 4', ui-serif, Georgia, serif; }
+  @media print {
+    body * { visibility: hidden; }
+    .print-area, .print-area * { visibility: visible; }
+    .print-area { position: absolute; top: 0; left: 0; width: 100%; border: none !important; border-radius: 0 !important; padding: 0.5in !important; }
+    .no-print { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useCallback, useMemo, useRef, createContext, useContext } = React;
+
+function Icon({ name, size = 16, className = "", strokeWidth = 2, style = {} }) {
+  const paths = {
+    LayoutGrid: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
+    Users: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+    GraduationCap: <><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12.5V17c0 1.5 3 3 6 3s6-1.5 6-3v-4.5"/><path d="M22 10v6"/></>,
+    BookOpen: <><path d="M2 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2Z"/><path d="M22 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7Z"/></>,
+    Calendar: <><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></>,
+    ClipboardList: <><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M9 3v2h6V3"/><path d="M9 11h6M9 15h6M9 7h.01"/></>,
+    Settings: <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></>,
+    LogOut: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></>,
+    Plus: <path d="M12 5v14M5 12h14"/>,
+    Pencil: <><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="M15 5l4 4"/></>,
+    Trash2: <><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/></>,
+    X: <path d="M18 6 6 18M6 6l12 12"/>,
+    Search: <><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>,
+    ChevronRight: <path d="m9 18 6-6-6-6"/>,
+    School: <><path d="M2 22h20"/><path d="M6 18v-6l6-4 6 4v6"/><path d="M9 22v-4h6v4"/><path d="M12 2 2 8l10 6 10-6Z"/></>,
+    Layers: <><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></>,
+    UserCog: <><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h3"/><circle cx="18" cy="17" r="3"/><path d="M18 14v.5M18 19.5v.5M21 17h-.5M15.5 17H15M20 15l-.35.35M16.35 18.65 16 19M20 19l-.35-.35M16.35 15.35 16 15"/></>,
+    Wallet: <><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5Z"/><path d="M21 12h-4a2 2 0 0 0 0 4h4Z"/></>,
+    ChevronDown: <path d="m6 9 6 6 6-6"/>,
+    Check: <path d="M20 6 9 17l-5-5"/>,
+    AlertCircle: <><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></>,
+    Menu: <path d="M4 6h16M4 12h16M4 18h16"/>,
+    ArrowLeft: <path d="M19 12H5M12 19l-7-7 7-7"/>,
+  };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: "inline-block", flexShrink: 0, ...style }}>
+      {paths[name] || null}
+    </svg>
+  );
+}
+
+
+
+/* ============================================================
+   STORAGE LAYER — wraps window.storage with a small local cache
+   so the UI can read synchronously after first load.
+   ============================================================ */
+
+const STORAGE_KEY = "jhs_lms_db_v1";
+
+const emptyDB = () => ({
+  meta: { seeded: true, v: 4 },
+  academicYears: [
+    { id: "ay1", label: "2025/2026", isActive: true },
+  ],
+  terms: [
+    { id: "t1", academicYearId: "ay1", label: "Term 1", isActive: false, startDate: "2025-09-08", endDate: "2025-12-12" },
+    { id: "t2", academicYearId: "ay1", label: "Term 2", isActive: true, startDate: "2026-01-05", endDate: "2026-04-03" },
+    { id: "t3", academicYearId: "ay1", label: "Term 3", isActive: false, startDate: "2026-04-20", endDate: "2026-07-24" },
+  ],
+  classes: [
+    { id: "c1", name: "JHS 1", level: 1 },
+    { id: "c2", name: "JHS 2", level: 2 },
+    { id: "c3", name: "JHS 3", level: 3 },
+  ],
+  streams: [
+    { id: "s1", classId: "c1", name: "A", classTeacherId: "teacher2" },
+    { id: "s2", classId: "c1", name: "B", classTeacherId: null },
+    { id: "s3", classId: "c2", name: "A", classTeacherId: "teacher3" },
+    { id: "s4", classId: "c3", name: "A", classTeacherId: "teacher4" },
+  ],
+  subjects: [
+    { id: "sub1", name: "English Language", code: "ENG", core: true },
+    { id: "sub2", name: "Mathematics", code: "MATH", core: true },
+    { id: "sub3", name: "Integrated Science", code: "SCI", core: true },
+    { id: "sub4", name: "Social Studies", code: "SOC", core: true },
+    { id: "sub5", name: "Career Technology", code: "CTECH", core: false },
+    { id: "sub6", name: "Creative Arts and Design", code: "CAD", core: false },
+    { id: "sub7", name: "Ghanaian Language-Dagbani", code: "DAG", core: false },
+    { id: "sub8", name: "Computing", code: "ICT", core: false },
+    { id: "sub9", name: "Religious and Moral Education", code: "RME", core: false },
+  ],
+  subjectAssignments: [
+    { id: "sa1", streamId: "s1", subjectId: "sub1", teacherId: "teacher2" },
+    { id: "sa2", streamId: "s1", subjectId: "sub2", teacherId: "teacher5" },
+    { id: "sa3", streamId: "s1", subjectId: "sub3", teacherId: "teacher5" },
+    { id: "sa4", streamId: "s1", subjectId: "sub4", teacherId: "teacher2" },
+  ],
+  users: [
+    { id: "admin1", role: "admin", name: "Dr. Abena Osei", email: "admin@jhs.edu.gh", password: "admin123", phone: "0244000001", dob: "1980-05-12", title: "Headteacher" },
+    { id: "teacher2", role: "teacher", name: "Mr. Kwame Boateng", email: "kboateng@jhs.edu.gh", password: "teach123", phone: "0244000002", dob: "1988-02-18", subjectIds: ["sub1", "sub4"] },
+    { id: "teacher3", role: "teacher", name: "Mrs. Efua Mensah", email: "emensah@jhs.edu.gh", password: "teach123", phone: "0244000003", dob: "1990-09-03", subjectIds: ["sub2"] },
+    { id: "teacher4", role: "teacher", name: "Mr. Yaw Darko", email: "ydarko@jhs.edu.gh", password: "teach123", phone: "0244000004", dob: "1985-11-27", subjectIds: ["sub3"] },
+    { id: "teacher5", role: "teacher", name: "Ms. Adjoa Frimpong", email: "afrimpong@jhs.edu.gh", password: "teach123", phone: "0244000005", dob: "1992-07-09", subjectIds: ["sub2", "sub3"] },
+    { id: "accountant1", role: "accountant", name: "Mr. Kofi Antwi", email: "kantwi@jhs.edu.gh", password: "acct123", phone: "0244000006", dob: "1983-04-21" },
+    { id: "student1", role: "student", name: "Ama Serwaa", email: "ama.serwaa@jhs.edu.gh", password: "student123", streamId: "s1", indexNumber: "JHS/25/001", guardianId: "parent1", guardianPhone: "0244000010", photo: null, dob: "2012-03-14", gender: "F" },
+    { id: "student2", role: "student", name: "Kwabena Owusu", email: "kwabena.owusu@jhs.edu.gh", password: "student123", streamId: "s1", indexNumber: "JHS/25/002", guardianId: "parent2", guardianPhone: "0244000011", photo: null, dob: "2012-06-02", gender: "M" },
+    { id: "student3", role: "student", name: "Akosua Baah", email: "akosua.baah@jhs.edu.gh", password: "student123", streamId: "s1", indexNumber: "JHS/25/003", guardianId: "parent1", guardianPhone: "0244000010", photo: null, dob: "2012-01-22", gender: "F" },
+    { id: "parent1", role: "parent", name: "Mr. Yaw Serwaa", email: "y.serwaa@gmail.com", password: "parent123", phone: "0244000010", wardIds: ["student1", "student3"] },
+    { id: "parent2", role: "parent", name: "Mrs. Grace Owusu", email: "g.owusu@gmail.com", password: "parent123", phone: "0244000011", wardIds: ["student2"] },
+  ],
+  gradingScale: [
+    { id: "g1", min: 80, max: 100, grade: "1", description: "Excellent" },
+    { id: "g2", min: 70, max: 79, grade: "2", description: "Very Good" },
+    { id: "g3", min: 65, max: 69, grade: "3", description: "Good" },
+    { id: "g4", min: 60, max: 64, grade: "4", description: "Credit" },
+    { id: "g5", min: 55, max: 59, grade: "5", description: "Credit" },
+    { id: "g6", min: 50, max: 54, grade: "6", description: "Credit" },
+    { id: "g7", min: 45, max: 49, grade: "7", description: "Pass" },
+    { id: "g8", min: 40, max: 44, grade: "8", description: "Pass" },
+    { id: "g9", min: 0, max: 39, grade: "9", description: "Fail" },
+  ],
+  scores: [],
+  attendance: [],
+  remarks: [],
+  school: {
+    name: "Kaladan E.P Junior High School B",
+    address: "Post Office Box 625, Tamale",
+    phone: "0302 456 789",
+    email: "info@sunrisejhs.edu.gh",
+    logo: "data:image/png;base64,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",
+    motto: "Knowledge, Character, Excellence",
+    staffCode: "KALADAN2026",
+  },
+});
+
+function migrateDB(d) {
+  const seed = emptyDB();
+  if (!d.meta || d.meta.v < 3) {
+    d.subjects = seed.subjects;
+    d.scores = (d.scores || []).map((x) => (x.marks !== undefined ? x : { id: x.id, studentId: x.studentId, subjectId: x.subjectId, termId: x.termId, marks: (x.caScore || 0) + (x.examScore || 0) }));
+    d.school = { ...seed.school, ...d.school };
+    if (!d.school.logo || /Sunrise/.test(d.school.name || "")) { d.school.logo = seed.school.logo; d.school.name = seed.school.name; }
+    if (/Accra/.test(d.school.address || "")) d.school.address = seed.school.address;
+    if (!d.school.staffCode) d.school.staffCode = seed.school.staffCode;
+  }
+  if (!d.meta || d.meta.v < 4) {
+    // Class mark / exam mark breakdown replaces the single "marks" field.
+    d.scores = (d.scores || []).map((x) => {
+      if (x.classMark !== undefined || x.examMark !== undefined) return x;
+      return { id: x.id, studentId: x.studentId, subjectId: x.subjectId, termId: x.termId, classMark: 0, examMark: x.marks || 0 };
+    });
+    d.users = (d.users || []).map((u) => {
+      const extra = {};
+      if ((u.role === "teacher" || u.role === "accountant" || u.role === "admin") && u.dob === undefined) extra.dob = "";
+      if (u.role === "student" && u.guardianPhone === undefined) extra.guardianPhone = "";
+      return Object.keys(extra).length ? { ...u, ...extra } : u;
+    });
+  }
+  d.meta = { ...(d.meta || {}), v: 4 };
+  return d;
+}
+
+// --- Cloud sync (optional) -----------------------------------------------
+// Fill in FIREBASE_CONFIG (see README.md) to make data shared across every
+// device instead of trapped in one browser's local storage. Left blank, the
+// app falls back to local-only storage automatically — it still works, it
+// just won't sync between devices.
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCvYQjT309pqFWsMwxlVbRuQf5Etar-W2w",
+  authDomain: "kaladan-lms.firebaseapp.com",
+  projectId: "kaladan-lms",
+  storageBucket: "kaladan-lms.firebasestorage.app",
+  messagingSenderId: "64708940391",
+  appId: "1:64708940391:web:607bcc9f0ade01dbe67ac2",
+};
+const CLOUD_ENABLED = !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId);
+const CLOUD_COLLECTION = "kaladan_jhs_lms";
+const CLOUD_DOC = "database";
+
+let firestoreDb = null;
+if (CLOUD_ENABLED && window.firebase) {
+  try {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    firestoreDb = firebase.firestore();
+  } catch (e) {
+    console.error("Firebase init failed, falling back to local storage", e);
+    firestoreDb = null;
+  }
+}
+
+async function loadDB() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return migrateDB(JSON.parse(raw));
+  } catch (e) { /* storage unavailable or corrupt */ }
+  const fresh = emptyDB();
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh)); } catch (e) {}
+  return fresh;
+}
+
+async function saveDB(db) {
+  // Always keep a local copy too, so the app still opens instantly next time
+  // and still works if the network briefly drops.
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); } catch (e) { console.error(e); }
+  if (CLOUD_ENABLED && firestoreDb) {
+    try {
+      await firestoreDb.collection(CLOUD_COLLECTION).doc(CLOUD_DOC).set({ payload: JSON.stringify(db), updatedAt: Date.now() });
+    } catch (e) {
+      console.error("Cloud save failed, change is kept locally only for now", e);
+    }
+  }
+}
+
+const uid = (p = "id") => `${p}_${Math.random().toString(36).slice(2, 10)}`;
+
+function ordinal(n) {
+  if (!n) return "-";
+  const su = ["th", "st", "nd", "rd"], v = n % 100;
+  return n + (su[(v - 20) % 10] || su[v] || su[0]);
+}
+
+function gradeFor(scale, score) {
+  const band = scale.find((b) => score >= b.min && score <= b.max);
+  return band || { grade: "-", description: "-" };
+}
+
+function rankMap(items) {
+  const sorted = [...items].sort((a, b) => b.value - a.value);
+  const map = {};
+  let pos = 0;
+  sorted.forEach((it, i) => {
+    if (i === 0 || it.value !== sorted[i - 1].value) pos = i + 1;
+    map[it.id] = pos;
+  });
+  return map;
+}
+
+function computeReport(db, studentId, termId) {
+  const student = db.users.find((u) => u.id === studentId);
+  if (!student) return null;
+  const stream = db.streams.find((s) => s.id === student.streamId);
+  const cls = db.classes.find((c) => c.id === stream?.classId);
+  const classmates = db.users.filter((u) => u.role === "student" && u.streamId === student.streamId);
+  const perStudentTotals = {};
+  classmates.forEach((cm) => { perStudentTotals[cm.id] = { sum: 0, count: 0 }; });
+
+  const subjectResults = db.subjects.map((subject) => {
+    // Only classmates with an actual score record on file compete for this
+    // subject's position/ranking — a subject nobody has graded yet isn't
+    // ranked, and a 0 that was never entered shouldn't masquerade as a fail.
+    const entered = [];
+    classmates.forEach((cm) => {
+      const sc = db.scores.find((x) => x.studentId === cm.id && x.subjectId === subject.id && x.termId === termId);
+      if (!sc) return;
+      const classMark = sc.classMark || 0;
+      const examMark = sc.examMark || 0;
+      const total = classMark + examMark;
+      perStudentTotals[cm.id].sum += total;
+      perStudentTotals[cm.id].count += 1;
+      entered.push({ id: cm.id, value: total, classMark, examMark });
+    });
+    const positions = rankMap(entered);
+    const mine = entered.find((x) => x.id === studentId);
+    const hasScore = !!mine;
+    const band = hasScore ? gradeFor(db.gradingScale, mine.value) : null;
+    return {
+      subjectId: subject.id, name: subject.name, code: subject.code,
+      hasScore,
+      classMark: hasScore ? mine.classMark : null,
+      examMark: hasScore ? mine.examMark : null,
+      total: hasScore ? mine.value : null,
+      grade: hasScore ? band.grade : null,
+      description: hasScore ? band.description : null,
+      position: hasScore ? positions[studentId] : null,
+      outOf: entered.length,
+    };
+  });
+
+  const overallItems = classmates.map((cm) => ({
+    id: cm.id,
+    value: perStudentTotals[cm.id].count ? perStudentTotals[cm.id].sum / perStudentTotals[cm.id].count : null,
+  })).filter((x) => x.value !== null);
+  const overallPositions = rankMap(overallItems);
+  const myOverall = overallItems.find((x) => x.id === studentId);
+  const attendance = db.attendance.find((a) => a.studentId === studentId && a.termId === termId);
+  const remark = db.remarks.find((r) => r.studentId === studentId && r.termId === termId);
+  const term = db.terms.find((t) => t.id === termId);
+  const year = db.academicYears.find((y) => y.id === term?.academicYearId);
+
+  return {
+    student, stream, cls, term, year, subjectResults,
+    overallAverage: myOverall ? myOverall.value : null,
+    overallPosition: myOverall ? overallPositions[studentId] : null,
+    overallOutOf: overallItems.length,
+    classSize: classmates.length,
+    attendance: attendance || { daysPresent: 0, totalDays: 0 },
+    remark: remark || { conduct: "", teacherRemark: "", headteacherRemark: "", promotion: "" },
+  };
+}
+
+/* ============================================================
+   APP CONTEXT
+   ============================================================ */
+
+const DBContext = createContext(null);
+const useDB = () => useContext(DBContext);
+
+function useDatabase() {
+  const [db, setDb] = useState(null);
+  const [ready, setReady] = useState(false);
+  const [cloudStatus, setCloudStatus] = useState(CLOUD_ENABLED ? "connecting" : "local");
+
+  useEffect(() => {
+    if (CLOUD_ENABLED && firestoreDb) {
+      const ref = firestoreDb.collection(CLOUD_COLLECTION).doc(CLOUD_DOC);
+      const unsub = ref.onSnapshot(
+        (snap) => {
+          if (snap.exists && snap.data() && snap.data().payload) {
+            const next = migrateDB(JSON.parse(snap.data().payload));
+            setDb(next);
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) {}
+          } else {
+            const fresh = emptyDB();
+            ref.set({ payload: JSON.stringify(fresh), updatedAt: Date.now() });
+            setDb(fresh);
+          }
+          setReady(true);
+          setCloudStatus("connected");
+        },
+        (err) => {
+          console.error("Cloud sync unavailable, using this device's local copy", err);
+          setCloudStatus("error");
+          loadDB().then((d) => { setDb(d); setReady(true); });
+        }
+      );
+      return () => unsub();
+    } else {
+      loadDB().then((d) => { setDb(d); setReady(true); });
+    }
+  }, []);
+
+  const commit = useCallback((updater) => {
+    setDb((prev) => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      saveDB(next);
+      return next;
+    });
+  }, []);
+
+  return { db, ready, commit, cloudStatus };
+}
+
+/* ============================================================
+   PRIMITIVES
+   ============================================================ */
+
+function Button({ children, variant = "primary", size = "md", icon, className = "", ...props }) {
+  const base = "inline-flex items-center justify-center gap-2 font-medium rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
+  const variants = {
+    primary: "bg-[#1E2A4A] text-white hover:bg-[#293a63] focus-visible:outline-[#1E2A4A]",
+    gold: "bg-[#C9922E] text-white hover:bg-[#b8842a] focus-visible:outline-[#C9922E]",
+    outline: "border border-[#1E2A4A]/25 text-[#1E2A4A] hover:bg-[#1E2A4A]/5 focus-visible:outline-[#1E2A4A]",
+    ghost: "text-[#1E2A4A] hover:bg-[#1E2A4A]/5",
+    danger: "bg-[#A6432D] text-white hover:bg-[#8f3924]",
+    dangerGhost: "text-[#A6432D] hover:bg-[#A6432D]/8",
+  };
+  const sizes = { sm: "text-xs px-2.5 py-1.5", md: "text-sm px-3.5 py-2", lg: "text-sm px-5 py-2.5" };
+  return (
+    <button className={`${base} ${variants[variant]} ${sizes[size]} ${className}`} {...props}>
+      {icon && <Icon name={icon} size={size === "sm" ? 14 : 16} strokeWidth={2} />}
+      {children}
+    </button>
+  );
+}
+
+function Field({ label, required, children, hint, error }) {
+  return (
+    <label className="block">
+      <span className="block text-[13px] font-medium text-[#1E2A4A]/80 mb-1.5">
+        {label}{required && <span className="text-[#A6432D]"> *</span>}
+      </span>
+      {children}
+      {hint && <span className="block text-xs text-[#1E2A4A]/45 mt-1">{hint}</span>}
+      {error && <span className="flex items-center gap-1 text-xs text-[#A6432D] mt-1"><Icon name="AlertCircle" size={12}  />{error}</span>}
+    </label>
+  );
+}
+
+const inputCls = "w-full rounded-md border border-[#1E2A4A]/20 bg-white px-3 py-2 text-sm text-[#1E2A4A] placeholder:text-[#1E2A4A]/35 focus:outline-none focus:ring-2 focus:ring-[#1E2A4A]/25 focus:border-[#1E2A4A]/40";
+
+function Input(props) { return <input className={inputCls} {...props} />; }
+function Select({ children, ...props }) {
+  return (
+    <div className="relative">
+      <select className={`${inputCls} appearance-none pr-8`} {...props}>{children}</select>
+      <Icon name="ChevronDown" size={15} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#1E2A4A]/40 pointer-events-none"  />
+    </div>
+  );
+}
+
+function ImageUpload({ value, onChange, label, round }) {
+  function handleFile(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => onChange(reader.result);
+    reader.readAsDataURL(file);
+  }
+  return (
+    <div className="flex items-center gap-3">
+      <div className={`w-16 h-16 ${round ? "rounded-full" : "rounded-md"} bg-[#1E2A4A]/8 flex items-center justify-center overflow-hidden shrink-0 border border-[#1E2A4A]/10`}>
+        {value ? <img src={value} alt="" className="w-full h-full object-cover" /> : <Icon name="School" size={20} className="text-[#1E2A4A]/30" />}
+      </div>
+      <div>
+        <label className="inline-flex items-center gap-1.5 text-xs font-medium text-[#1E2A4A] border border-[#1E2A4A]/20 rounded-md px-2.5 py-1.5 cursor-pointer hover:bg-[#1E2A4A]/5">
+          <Icon name="Plus" size={12} /> {label || "Upload photo"}
+          <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
+        </label>
+        {value && <button type="button" onClick={() => onChange(null)} className="ml-2 text-xs text-[#A6432D]">Remove</button>}
+      </div>
+    </div>
+  );
+}
+
+function Modal({ open, onClose, title, children, width = "max-w-lg" }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div className="absolute inset-0 bg-[#0F1626]/50 backdrop-blur-[2px]" onClick={onClose} />
+      <div className={`relative bg-[#FAF8F4] w-full ${width} rounded-t-2xl sm:rounded-xl shadow-2xl max-h-[92vh] flex flex-col`}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#1E2A4A]/10 shrink-0">
+          <h3 className="font-serif text-lg text-[#1E2A4A]">{title}</h3>
+          <button onClick={onClose} className="p-1.5 rounded-md hover:bg-[#1E2A4A]/8 text-[#1E2A4A]/60">
+            <Icon name="X" size={18}  />
+          </button>
+        </div>
+        <div className="overflow-y-auto px-5 py-4">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmDialog({ open, onClose, onConfirm, title, message }) {
+  if (!open) return null;
+  return (
+    <Modal open={open} onClose={onClose} title={title} width="max-w-sm">
+      <p className="text-sm text-[#1E2A4A]/70 mb-5">{message}</p>
+      <div className="flex justify-end gap-2">
+        <Button variant="ghost" onClick={onClose}>Cancel</Button>
+        <Button variant="danger" onClick={() => { onConfirm(); onClose(); }}>Delete</Button>
+      </div>
+    </Modal>
+  );
+}
+
+function Badge({ children, tone = "neutral" }) {
+  const tones = {
+    neutral: "bg-[#1E2A4A]/8 text-[#1E2A4A]",
+    gold: "bg-[#C9922E]/15 text-[#8a6420]",
+    green: "bg-[#2F5233]/10 text-[#2F5233]",
+    rust: "bg-[#A6432D]/10 text-[#A6432D]",
+  };
+  return <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${tones[tone]}`}>{children}</span>;
+}
+
+function EmptyState({ icon, title, message, action }) {
+  return (
+    <div className="flex flex-col items-center justify-center text-center py-16 px-6">
+      <div className="w-12 h-12 rounded-full bg-[#1E2A4A]/6 flex items-center justify-center mb-3">
+        <Icon name={icon} size={20} className="text-[#1E2A4A]/40" />
+      </div>
+      <h4 className="font-serif text-base text-[#1E2A4A] mb-1">{title}</h4>
+      <p className="text-sm text-[#1E2A4A]/50 max-w-xs mb-4">{message}</p>
+      {action}
+    </div>
+  );
+}
+
+function Toast({ toast }) {
+  if (!toast) return null;
+  return (
+    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[100] bg-[#1E2A4A] text-white text-sm px-4 py-2.5 rounded-lg shadow-xl flex items-center gap-2 animate-[fadein_.15s_ease]">
+      <Icon name="Check" size={15} className="text-[#C9922E]"  />
+      {toast}
+    </div>
+  );
+}
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+
+function SyncBadge({ status, className = "", light = false }) {
+  if (!status) return null;
+  const map = {
+    connected: { label: "Cloud sync on — shared across devices", dot: "bg-[#2F5233]" },
+    connecting: { label: "Connecting to cloud sync…", dot: "bg-[#C9922E] animate-pulse" },
+    error: { label: "Cloud sync unavailable — using this device only", dot: "bg-[#A6432D]" },
+    local: { label: "This device only — not synced elsewhere", dot: light ? "bg-white/40" : "bg-[#1E2A4A]/40" },
+  };
+  const info = map[status] || map.local;
+  return (
+    <div className={`flex items-center gap-1.5 text-[11px] ${light ? "text-white/60" : "text-[#1E2A4A]/55"} ${className}`}>
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${info.dot}`}></span>
+      {info.label}
+    </div>
+  );
+}
+
+function LoginScreen({ onLogin, users, school, cloudStatus, onRegister }) {
+  const [mode, setMode] = useState("signin");
+  const [reg, setReg] = useState({ name: "", email: "", password: "", code: "" });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [showDemo, setShowDemo] = useState(false);
+
+  const demoAccounts = [
+    { role: "Administrator", email: "admin@jhs.edu.gh", password: "admin123" },
+    { role: "Teacher", email: "kboateng@jhs.edu.gh", password: "teach123" },
+    { role: "Student", email: "ama.serwaa@jhs.edu.gh", password: "student123" },
+    { role: "Parent", email: "y.serwaa@gmail.com", password: "parent123" },
+    { role: "Accountant", email: "kantwi@jhs.edu.gh", password: "acct123" },
+  ];
+
+  function submit(e) {
+    e.preventDefault();
+    const u = users.find((x) => x.email.toLowerCase() === email.trim().toLowerCase() && x.password === password);
+    if (!u) { setError("Incorrect email or password. Please try again."); return; }
+    setError("");
+    onLogin(u);
+  }
+
+  function submitReg(e) {
+    e.preventDefault();
+    const code = (school && school.staffCode) || "KALADAN2026";
+    if (reg.code.trim() !== code) { setError("Incorrect staff access code. Ask the Headteacher for it."); return; }
+    if (users.some((x) => x.email.toLowerCase() === reg.email.trim().toLowerCase())) { setError("An account with this email already exists. Please sign in."); return; }
+    if (reg.password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    setError("");
+    onRegister({ id: uid("teacher"), role: "teacher", name: reg.name.trim(), email: reg.email.trim(), password: reg.password, phone: "", subjectIds: [] });
+  }
+
+  return (
+    <div className="min-h-screen bg-[#1E2A4A] flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-[0.05]" style={{
+        backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 39px, #C9922E 39px, #C9922E 40px), repeating-linear-gradient(90deg, transparent, transparent 39px, #C9922E 39px, #C9922E 40px)"
+      }} />
+      <div className="relative w-full max-w-sm">
+        <div className="text-center mb-7">
+          {school && school.logo ? (
+            <img src={school.logo} alt="" className="w-24 h-24 object-contain mx-auto mb-3 bg-white rounded-full p-1" />
+          ) : (
+            <div className="w-14 h-14 rounded-full bg-[#C9922E] mx-auto flex items-center justify-center mb-4">
+              <Icon name="School" size={26} className="text-white" strokeWidth={1.75}  />
+            </div>
+          )}
+          <h1 className="font-serif text-2xl text-white leading-tight">Kaladan E.P<br/>Junior High School B</h1>
+          <p className="text-[#C9922E] text-xs tracking-wide mt-1.5">Knowledge · Character · Excellence</p>
+          <SyncBadge status={cloudStatus} light className="mt-2.5 justify-center" />
+        </div>
+
+        {mode === "register" ? (
+        <form onSubmit={submitReg} className="bg-[#FAF8F4] rounded-xl p-6 shadow-2xl">
+          <h2 className="font-serif text-lg text-[#1E2A4A] mb-4">Teacher registration</h2>
+          <div className="space-y-3.5">
+            <Field label="Full name" required><Input value={reg.name} onChange={(e) => setReg({ ...reg, name: e.target.value })} placeholder="Mr. Kwame Boateng" required /></Field>
+            <Field label="Email address" required><Input type="email" value={reg.email} onChange={(e) => setReg({ ...reg, email: e.target.value })} required /></Field>
+            <Field label="Create password" required hint="At least 6 characters"><Input type="password" value={reg.password} onChange={(e) => setReg({ ...reg, password: e.target.value })} required /></Field>
+            <Field label="Staff access code" required hint="Given to you by the Headteacher"><Input value={reg.code} onChange={(e) => setReg({ ...reg, code: e.target.value })} required /></Field>
+            {error && (<div className="flex items-center gap-1.5 text-xs text-[#A6432D] bg-[#A6432D]/8 rounded-md px-3 py-2"><Icon name="AlertCircle" size={13} /> {error}</div>)}
+            <Button type="submit" className="w-full" size="lg">Create account</Button>
+          </div>
+          <button type="button" onClick={() => { setMode("signin"); setError(""); }} className="text-xs text-[#1E2A4A]/60 hover:text-[#1E2A4A] mt-4 w-full text-center">Already registered? Sign in</button>
+        </form>
+        ) : (
+        <form onSubmit={submit} className="bg-[#FAF8F4] rounded-xl p-6 shadow-2xl">
+          <h2 className="font-serif text-lg text-[#1E2A4A] mb-4">Sign in</h2>
+          <div className="space-y-3.5">
+            <Field label="Email address" required>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@jhs.edu.gh" autoComplete="username" required />
+            </Field>
+            <Field label="Password" required>
+              <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" required />
+            </Field>
+            {error && (
+              <div className="flex items-center gap-1.5 text-xs text-[#A6432D] bg-[#A6432D]/8 rounded-md px-3 py-2">
+                <Icon name="AlertCircle" size={13}  /> {error}
+              </div>
+            )}
+            <Button type="submit" className="w-full" size="lg">Sign in</Button>
+          </div>
+
+          <button type="button" onClick={() => setShowDemo((s) => !s)} className="text-xs text-[#1E2A4A]/50 hover:text-[#1E2A4A] mt-4 w-full text-center">
+            {showDemo ? "Hide demo accounts" : "View demo accounts"}
+          </button>
+          {showDemo && (
+            <div className="mt-3 space-y-1.5 border-t border-[#1E2A4A]/10 pt-3">
+              {demoAccounts.map((a) => (
+                <button
+                  type="button"
+                  key={a.email}
+                  onClick={() => { setEmail(a.email); setPassword(a.password); setError(""); }}
+                  className="w-full flex items-center justify-between text-xs px-2.5 py-1.5 rounded-md hover:bg-[#1E2A4A]/6 text-left"
+                >
+                  <span className="font-medium text-[#1E2A4A]">{a.role}</span>
+                  <span className="text-[#1E2A4A]/45 font-mono">{a.email}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          <button type="button" onClick={() => { setMode("register"); setError(""); }} className="text-xs font-medium text-[#C9922E] hover:text-[#8a6420] mt-3 w-full text-center">New teacher? Register here</button>
+        </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   NAV CONFIG PER ROLE
+   ============================================================ */
+
+const NAV_BY_ROLE = {
+  admin: [
+    { id: "dashboard", label: "Dashboard", icon: "LayoutGrid" },
+    { id: "academic", label: "Academic Setup", icon: "Layers" },
+    { id: "staff", label: "Staff", icon: "UserCog" },
+    { id: "students", label: "Students", icon: "GraduationCap" },
+    { id: "results", label: "Results Entry", icon: "Pencil" },
+    { id: "reports", label: "Report Cards", icon: "ClipboardList" },
+    { id: "grading", label: "Grading Scale", icon: "BookOpen" },
+    { id: "settings", label: "School Settings", icon: "Settings" },
+  ],
+  teacher: [
+    { id: "dashboard", label: "Dashboard", icon: "LayoutGrid" },
+    { id: "gradebook", label: "Gradebook", icon: "BookOpen" },
+    { id: "attendance", label: "Attendance", icon: "Calendar" },
+    { id: "students", label: "My Students", icon: "GraduationCap" },
+  ],
+  student: [
+    { id: "dashboard", label: "Dashboard", icon: "LayoutGrid" },
+    { id: "reports", label: "My Reports", icon: "ClipboardList" },
+  ],
+  parent: [
+    { id: "dashboard", label: "Dashboard", icon: "LayoutGrid" },
+    { id: "reports", label: "Reports", icon: "ClipboardList" },
+  ],
+  accountant: [
+    { id: "dashboard", label: "Dashboard", icon: "LayoutGrid" },
+    { id: "fees", label: "Fees", icon: "Wallet" },
+  ],
+};
+
+const ROLE_LABEL = { admin: "Administrator", teacher: "Teacher", student: "Student", parent: "Parent/Guardian", accountant: "Accountant" };
+
+/* ============================================================
+   SHELL (sidebar + topbar)
+   ============================================================ */
+
+function Shell({ user, page, setPage, onLogout, children, activeTerm, activeYear, school, cloudStatus }) {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const nav = NAV_BY_ROLE[user.role] || [];
+
+  return (
+    <div className="min-h-screen bg-[#FAF8F4] flex">
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex md:flex-col w-60 shrink-0 bg-[#1E2A4A] text-white min-h-screen sticky top-0 h-screen">
+        <SidebarContent user={user} nav={nav} page={page} setPage={setPage} onLogout={onLogout} school={school} />
+      </aside>
+
+      {/* Mobile nav drawer */}
+      {mobileNavOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileNavOpen(false)} />
+          <aside className="absolute left-0 top-0 h-full w-64 bg-[#1E2A4A] text-white flex flex-col">
+            <SidebarContent user={user} nav={nav} page={page} setPage={(p) => { setPage(p); setMobileNavOpen(false); }} onLogout={onLogout} school={school} />
+          </aside>
+        </div>
+      )}
+
+      <div className="flex-1 min-w-0 flex flex-col">
+        <header className="sticky top-0 z-30 bg-[#FAF8F4]/90 backdrop-blur border-b border-[#1E2A4A]/10 px-4 md:px-7 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <button className="md:hidden p-1.5 -ml-1.5 text-[#1E2A4A]" onClick={() => setMobileNavOpen(true)}>
+              <Icon name="Menu" size={20}  />
+            </button>
+            <div className="min-w-0">
+              <h1 className="font-serif text-lg md:text-xl text-[#1E2A4A] truncate">
+                {(nav.find((n) => n.id === page) || {}).label || "Dashboard"}
+              </h1>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <SyncBadge status={cloudStatus} className="hidden md:flex" />
+            <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#1E2A4A]/60 bg-[#1E2A4A]/6 rounded-full px-3 py-1.5">
+              <Icon name="Calendar" size={12}  />
+              {activeYear?.label} · {activeTerm?.label}
+            </div>
+          </div>
+        </header>
+        <main className="flex-1 px-4 md:px-7 py-5 md:py-6 max-w-[1400px] w-full mx-auto">{children}</main>
+      </div>
+    </div>
+  );
+}
+
+function SidebarContent({ user, nav, page, setPage, onLogout, school }) {
+  return (
+    <>
+      <div className="px-5 pt-6 pb-5 flex items-center gap-2.5 border-b border-white/10">
+        <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center shrink-0 overflow-hidden">
+          {school && school.logo ? (
+            <img src={school.logo} alt="" className="w-full h-full object-contain p-0.5" />
+          ) : (
+            <Icon name="School" size={17} className="text-[#1E2A4A]" strokeWidth={1.75}  />
+          )}
+        </div>
+        <div className="min-w-0">
+          <div className="font-serif text-sm leading-tight truncate">Kaladan E.P JHS B</div>
+          <div className="text-[10px] text-white/45 tracking-wide">LEARNING MANAGEMENT</div>
+        </div>
+      </div>
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        {nav.map((item) => {
+          const iconName = item.icon;
+          const active = page === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setPage(item.id)}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13.5px] font-medium transition-colors ${
+                active ? "bg-[#C9922E] text-white" : "text-white/70 hover:bg-white/8 hover:text-white"
+              }`}
+            >
+              <Icon name={iconName} size={16} strokeWidth={1.9} />
+              {item.label}
+              {active && <Icon name="ChevronRight" size={14} className="ml-auto"  />}
+            </button>
+          );
+        })}
+      </nav>
+      <div className="px-3 pb-5 pt-3 border-t border-white/10">
+        <div className="flex items-center gap-2.5 px-2 py-2 mb-1">
+          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-medium shrink-0">
+            {user.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+          </div>
+          <div className="min-w-0">
+            <div className="text-[13px] font-medium truncate">{user.name}</div>
+            <div className="text-[11px] text-white/45">{ROLE_LABEL[user.role]}</div>
+          </div>
+        </div>
+        <button onClick={onLogout} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-white/60 hover:bg-white/8 hover:text-white">
+          <Icon name="LogOut" size={15}  /> Sign out
+        </button>
+      </div>
+    </>
+  );
+}
+
+/* ============================================================
+   ACADEMIC SETUP MODULE (Admin)
+   ============================================================ */
+
+function TabBar({ tabs, active, onChange }) {
+  return (
+    <div className="flex gap-1 border-b border-[#1E2A4A]/10 mb-5 overflow-x-auto no-scrollbar">
+      {tabs.map((t) => (
+        <button
+          key={t.id}
+          onClick={() => onChange(t.id)}
+          className={`px-3.5 py-2.5 text-[13px] font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
+            active === t.id ? "border-[#C9922E] text-[#1E2A4A]" : "border-transparent text-[#1E2A4A]/45 hover:text-[#1E2A4A]/70"
+          }`}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Panel({ title, action, children, className = "" }) {
+  return (
+    <div className={`bg-white rounded-xl border border-[#1E2A4A]/10 ${className}`}>
+      {(title || action) && (
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1E2A4A]/8">
+          <h3 className="font-serif text-[15px] text-[#1E2A4A]">{title}</h3>
+          {action}
+        </div>
+      )}
+      <div className="p-5">{children}</div>
+    </div>
+  );
+}
+
+function Table({ columns, rows, renderRow, empty }) {
+  if (!rows.length) return empty;
+  return (
+    <div className="overflow-x-auto -mx-5 px-5">
+      <table className="w-full text-sm min-w-[560px]">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-wide text-[#1E2A4A]/40 border-b border-[#1E2A4A]/10">
+            {columns.map((c) => <th key={c} className="pb-2.5 font-medium pr-4">{c}</th>)}
+          </tr>
+        </thead>
+        <tbody>{rows.map(renderRow)}</tbody>
+      </table>
+    </div>
+  );
+}
+
+function RowActions({ onEdit, onDelete }) {
+  return (
+    <div className="flex items-center gap-1 justify-end">
+      {onEdit && <button onClick={onEdit} className="p-1.5 rounded-md text-[#1E2A4A]/50 hover:bg-[#1E2A4A]/8 hover:text-[#1E2A4A]"><Icon name="Pencil" size={14}  /></button>}
+      {onDelete && <button onClick={onDelete} className="p-1.5 rounded-md text-[#1E2A4A]/50 hover:bg-[#A6432D]/10 hover:text-[#A6432D]"><Icon name="Trash2" size={14}  /></button>}
+    </div>
+  );
+}
+
+function AcademicSetupPage({ toast }) {
+  const [tab, setTab] = useState("years");
+  const tabs = [
+    { id: "years", label: "Academic Years & Terms" },
+    { id: "classes", label: "Classes & Streams" },
+    { id: "subjects", label: "Subjects" },
+    { id: "assignments", label: "Subject Assignments" },
+  ];
+  return (
+    <div>
+      <TabBar tabs={tabs} active={tab} onChange={setTab} />
+      {tab === "years" && <YearsTermsTab toast={toast} />}
+      {tab === "classes" && <ClassesStreamsTab toast={toast} />}
+      {tab === "subjects" && <SubjectsTab toast={toast} />}
+      {tab === "assignments" && <AssignmentsTab toast={toast} />}
+    </div>
+  );
+}
+
+function YearsTermsTab({ toast }) {
+  const { db, commit } = useDB();
+  const [yearModal, setYearModal] = useState(null); // null | {} | {edit obj}
+  const [termModal, setTermModal] = useState(null);
+  const [confirmDel, setConfirmDel] = useState(null);
+
+  function saveYear(data) {
+    commit((prev) => {
+      let years = [...prev.academicYears];
+      if (data.id) {
+        years = years.map((y) => (y.id === data.id ? { ...y, ...data } : (data.isActive ? { ...y, isActive: false } : y)));
+      } else {
+        const ny = { ...data, id: uid("ay") };
+        years = data.isActive ? [...years.map((y) => ({ ...y, isActive: false })), ny] : [...years, ny];
+      }
+      return { ...prev, academicYears: years };
+    });
+    toast(data.id ? "Academic year updated" : "Academic year created");
+    setYearModal(null);
+  }
+
+  function saveTerm(data) {
+    commit((prev) => {
+      let terms = [...prev.terms];
+      if (data.id) {
+        terms = terms.map((t) => {
+          if (t.id === data.id) return { ...t, ...data };
+          if (data.isActive && t.academicYearId === data.academicYearId) return { ...t, isActive: false };
+          return t;
+        });
+      } else {
+        const nt = { ...data, id: uid("t") };
+        terms = data.isActive
+          ? [...terms.map((t) => (t.academicYearId === data.academicYearId ? { ...t, isActive: false } : t)), nt]
+          : [...terms, nt];
+      }
+      return { ...prev, terms };
+    });
+    toast(data.id ? "Term updated" : "Term created");
+    setTermModal(null);
+  }
+
+  function deleteItem() {
+    if (!confirmDel) return;
+    commit((prev) => {
+      if (confirmDel.type === "year") {
+        return { ...prev, academicYears: prev.academicYears.filter((y) => y.id !== confirmDel.id), terms: prev.terms.filter((t) => t.academicYearId !== confirmDel.id) };
+      }
+      return { ...prev, terms: prev.terms.filter((t) => t.id !== confirmDel.id) };
+    });
+    toast("Deleted");
+  }
+
+  return (
+    <div className="grid lg:grid-cols-[1fr_1.4fr] gap-5">
+      <Panel title="Academic Years" action={<Button size="sm" icon="Plus" onClick={() => setYearModal({})}>Add</Button>}>
+        <Table
+          columns={["Year", "Status", ""]}
+          rows={db.academicYears}
+          empty={<EmptyState icon="Calendar" title="No academic years" message="Create your first academic year to get started." />}
+          renderRow={(y) => (
+            <tr key={y.id} className="border-b border-[#1E2A4A]/6 last:border-0">
+              <td className="py-2.5 pr-4 font-medium text-[#1E2A4A]">{y.label}</td>
+              <td className="py-2.5 pr-4">{y.isActive ? <Badge tone="gold">Active</Badge> : <Badge>Inactive</Badge>}</td>
+              <td className="py-2.5"><RowActions onEdit={() => setYearModal(y)} onDelete={() => setConfirmDel({ type: "year", id: y.id, label: y.label })} /></td>
+            </tr>
+          )}
+        />
+      </Panel>
+
+      <Panel title="Terms" action={<Button size="sm" icon="Plus" onClick={() => setTermModal({})}>Add</Button>}>
+        <Table
+          columns={["Term", "Academic Year", "Dates", "Status", ""]}
+          rows={db.terms}
+          empty={<EmptyState icon="Calendar" title="No terms" message="Add terms under an academic year." />}
+          renderRow={(t) => {
+            const yr = db.academicYears.find((y) => y.id === t.academicYearId);
+            return (
+              <tr key={t.id} className="border-b border-[#1E2A4A]/6 last:border-0">
+                <td className="py-2.5 pr-4 font-medium text-[#1E2A4A]">{t.label}</td>
+                <td className="py-2.5 pr-4 text-[#1E2A4A]/60">{yr?.label || "—"}</td>
+                <td className="py-2.5 pr-4 text-[#1E2A4A]/60 text-xs">{t.startDate} → {t.endDate}</td>
+                <td className="py-2.5 pr-4">{t.isActive ? <Badge tone="gold">Active</Badge> : <Badge>Inactive</Badge>}</td>
+                <td className="py-2.5"><RowActions onEdit={() => setTermModal(t)} onDelete={() => setConfirmDel({ type: "term", id: t.id, label: t.label })} /></td>
+              </tr>
+            );
+          }}
+        />
+      </Panel>
+
+      <Modal open={!!yearModal} onClose={() => setYearModal(null)} title={yearModal?.id ? "Edit Academic Year" : "New Academic Year"}>
+        <YearForm initial={yearModal} onSave={saveYear} onCancel={() => setYearModal(null)} />
+      </Modal>
+      <Modal open={!!termModal} onClose={() => setTermModal(null)} title={termModal?.id ? "Edit Term" : "New Term"}>
+        <TermForm initial={termModal} years={db.academicYears} onSave={saveTerm} onCancel={() => setTermModal(null)} />
+      </Modal>
+      <ConfirmDialog open={!!confirmDel} onClose={() => setConfirmDel(null)} onConfirm={deleteItem} title="Delete this record?" message={`"${confirmDel?.label}" will be permanently removed. This cannot be undone.`} />
+    </div>
+  );
+}
+
+function YearForm({ initial, onSave, onCancel }) {
+  const [label, setLabel] = useState(initial?.label || "");
+  const [isActive, setIsActive] = useState(initial?.isActive || false);
+  const [error, setError] = useState("");
+  function submit(e) {
+    e.preventDefault();
+    if (!/^\d{4}\/\d{4}$/.test(label.trim())) { setError("Use the format 2025/2026"); return; }
+    onSave({ id: initial?.id, label: label.trim(), isActive });
+  }
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <Field label="Academic year label" required error={error} hint="Format: 2025/2026">
+        <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="2025/2026" />
+      </Field>
+      <label className="flex items-center gap-2 text-sm text-[#1E2A4A]">
+        <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} className="rounded accent-[#1E2A4A]" />
+        Set as active academic year
+      </label>
+      <div className="flex justify-end gap-2 pt-2">
+        <Button variant="ghost" type="button" onClick={onCancel}>Cancel</Button>
+        <Button type="submit">Save</Button>
+      </div>
+    </form>
+  );
+}
+
+function TermForm({ initial, years, onSave, onCancel }) {
+  const [label, setLabel] = useState(initial?.label || "Term 1");
+  const [academicYearId, setAcademicYearId] = useState(initial?.academicYearId || years[0]?.id || "");
+  const [startDate, setStartDate] = useState(initial?.startDate || "");
+  const [endDate, setEndDate] = useState(initial?.endDate || "");
+  const [isActive, setIsActive] = useState(initial?.isActive || false);
+  const [error, setError] = useState("");
+  function submit(e) {
+    e.preventDefault();
+    if (!academicYearId) { setError("Select an academic year"); return; }
+    if (startDate && endDate && startDate > endDate) { setError("Start date must be before end date"); return; }
+    onSave({ id: initial?.id, label, academicYearId, startDate, endDate, isActive });
+  }
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <Field label="Term" required>
+        <Select value={label} onChange={(e) => setLabel(e.target.value)}>
+          <option>Term 1</option><option>Term 2</option><option>Term 3</option>
+        </Select>
+      </Field>
+      <Field label="Academic year" required error={error}>
+        <Select value={academicYearId} onChange={(e) => setAcademicYearId(e.target.value)}>
+          {years.map((y) => <option key={y.id} value={y.id}>{y.label}</option>)}
+        </Select>
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Start date"><Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></Field>
+        <Field label="End date"><Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} /></Field>
+      </div>
+      <label className="flex items-center gap-2 text-sm text-[#1E2A4A]">
+        <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} className="rounded accent-[#1E2A4A]" />
+        Set as active term
+      </label>
+      <div className="flex justify-end gap-2 pt-2">
+        <Button variant="ghost" type="button" onClick={onCancel}>Cancel</Button>
+        <Button type="submit">Save</Button>
+      </div>
+    </form>
+  );
+}
+
+function ClassesStreamsTab({ toast }) {
+  const { db, commit } = useDB();
+  const [streamModal, setStreamModal] = useState(null);
+  const [confirmDel, setConfirmDel] = useState(null);
+  const teachers = db.users.filter((u) => u.role === "teacher");
+
+  function saveStream(data) {
+    commit((prev) => {
+      let streams = [...prev.streams];
+      if (data.id) streams = streams.map((s) => (s.id === data.id ? { ...s, ...data } : s));
+      else streams = [...streams, { ...data, id: uid("s") }];
+      return { ...prev, streams };
+    });
+    toast(data.id ? "Stream updated" : "Stream created");
+    setStreamModal(null);
+  }
+
+  function deleteStream() {
+    commit((prev) => ({ ...prev, streams: prev.streams.filter((s) => s.id !== confirmDel.id) }));
+    toast("Stream deleted");
+  }
+
+  return (
+    <div className="space-y-5">
+      {db.classes.sort((a, b) => a.level - b.level).map((cls) => {
+        const streams = db.streams.filter((s) => s.classId === cls.id);
+        return (
+          <Panel key={cls.id} title={cls.name} action={<Button size="sm" icon="Plus" onClick={() => setStreamModal({ classId: cls.id })}>Add Stream</Button>}>
+            <Table
+              columns={["Stream", "Class Teacher", "Students", ""]}
+              rows={streams}
+              empty={<EmptyState icon="Layers" title="No streams" message={`Add a stream to ${cls.name}, e.g. "A" or "B".`} />}
+              renderRow={(s) => {
+                const teacher = teachers.find((t) => t.id === s.classTeacherId);
+                const studentCount = db.users.filter((u) => u.role === "student" && u.streamId === s.id).length;
+                return (
+                  <tr key={s.id} className="border-b border-[#1E2A4A]/6 last:border-0">
+                    <td className="py-2.5 pr-4 font-medium text-[#1E2A4A]">{cls.name} {s.name}</td>
+                    <td className="py-2.5 pr-4 text-[#1E2A4A]/60">{teacher ? teacher.name : <span className="text-[#A6432D]/70">Unassigned</span>}</td>
+                    <td className="py-2.5 pr-4 text-[#1E2A4A]/60">{studentCount}</td>
+                    <td className="py-2.5"><RowActions onEdit={() => setStreamModal(s)} onDelete={() => setConfirmDel({ id: s.id, label: `${cls.name} ${s.name}` })} /></td>
+                  </tr>
+                );
+              }}
+            />
+          </Panel>
+        );
+      })}
+      <Modal open={!!streamModal} onClose={() => setStreamModal(null)} title={streamModal?.id ? "Edit Stream" : "New Stream"}>
+        <StreamForm initial={streamModal} classes={db.classes} teachers={teachers} onSave={saveStream} onCancel={() => setStreamModal(null)} />
+      </Modal>
+      <ConfirmDialog open={!!confirmDel} onClose={() => setConfirmDel(null)} onConfirm={deleteStream} title="Delete stream?" message={`"${confirmDel?.label}" will be removed. Students in this stream will be unassigned.`} />
+    </div>
+  );
+}
+
+function StreamForm({ initial, classes, teachers, onSave, onCancel }) {
+  const [classId, setClassId] = useState(initial?.classId || classes[0]?.id || "");
+  const [name, setName] = useState(initial?.name || "");
+  const [classTeacherId, setClassTeacherId] = useState(initial?.classTeacherId || "");
+  const [error, setError] = useState("");
+  function submit(e) {
+    e.preventDefault();
+    if (!name.trim()) { setError("Stream name is required"); return; }
+    onSave({ id: initial?.id, classId, name: name.trim().toUpperCase(), classTeacherId: classTeacherId || null });
+  }
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <Field label="Class" required>
+        <Select value={classId} onChange={(e) => setClassId(e.target.value)}>
+          {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </Select>
+      </Field>
+      <Field label="Stream name" required error={error} hint='e.g. "A", "B", "Gold"'>
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="A" />
+      </Field>
+      <Field label="Class teacher">
+        <Select value={classTeacherId} onChange={(e) => setClassTeacherId(e.target.value)}>
+          <option value="">— Unassigned —</option>
+          {teachers.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </Select>
+      </Field>
+      <div className="flex justify-end gap-2 pt-2">
+        <Button variant="ghost" type="button" onClick={onCancel}>Cancel</Button>
+        <Button type="submit">Save</Button>
+      </div>
+    </form>
+  );
+}
+
+function SubjectsTab({ toast }) {
+  const { db, commit } = useDB();
+  const [modal, setModal] = useState(null);
+  const [confirmDel, setConfirmDel] = useState(null);
+  const [search, setSearch] = useState("");
+
+  const filtered = db.subjects.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()) || s.code.toLowerCase().includes(search.toLowerCase()));
+
+  function save(data) {
+    commit((prev) => {
+      let subjects = [...prev.subjects];
+      if (data.id) subjects = subjects.map((s) => (s.id === data.id ? { ...s, ...data } : s));
+      else subjects = [...subjects, { ...data, id: uid("sub") }];
+      return { ...prev, subjects };
+    });
+    toast(data.id ? "Subject updated" : "Subject created");
+    setModal(null);
+  }
+  function del() {
+    commit((prev) => ({ ...prev, subjects: prev.subjects.filter((s) => s.id !== confirmDel.id) }));
+    toast("Subject deleted");
+  }
+
+  return (
+    <Panel
+      title="Subjects"
+      action={<Button size="sm" icon="Plus" onClick={() => setModal({})}>Add Subject</Button>}
+    >
+      <div className="relative mb-4 max-w-xs">
+        <Icon name="Search" size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#1E2A4A]/35"  />
+        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search subjects…" className="pl-8" />
+      </div>
+      <Table
+        columns={["Subject", "Code", "Type", ""]}
+        rows={filtered}
+        empty={<EmptyState icon="BookOpen" title="No subjects found" message="Add subjects taught in your school." />}
+        renderRow={(s) => (
+          <tr key={s.id} className="border-b border-[#1E2A4A]/6 last:border-0">
+            <td className="py-2.5 pr-4 font-medium text-[#1E2A4A]">{s.name}</td>
+            <td className="py-2.5 pr-4 font-mono text-xs text-[#1E2A4A]/60">{s.code}</td>
+            <td className="py-2.5 pr-4">{s.core ? <Badge tone="gold">Core</Badge> : <Badge>Elective</Badge>}</td>
+            <td className="py-2.5"><RowActions onEdit={() => setModal(s)} onDelete={() => setConfirmDel({ id: s.id, label: s.name })} /></td>
+          </tr>
+        )}
+      />
+      <Modal open={!!modal} onClose={() => setModal(null)} title={modal?.id ? "Edit Subject" : "New Subject"}>
+        <SubjectForm initial={modal} onSave={save} onCancel={() => setModal(null)} />
+      </Modal>
+      <ConfirmDialog open={!!confirmDel} onClose={() => setConfirmDel(null)} onConfirm={del} title="Delete subject?" message={`"${confirmDel?.label}" will be removed from all assignments.`} />
+    </Panel>
+  );
+}
+
+function SubjectForm({ initial, onSave, onCancel }) {
+  const [name, setName] = useState(initial?.name || "");
+  const [code, setCode] = useState(initial?.code || "");
+  const [core, setCore] = useState(initial?.core ?? true);
+  const [error, setError] = useState("");
+  function submit(e) {
+    e.preventDefault();
+    if (!name.trim() || !code.trim()) { setError("Both fields are required"); return; }
+    onSave({ id: initial?.id, name: name.trim(), code: code.trim().toUpperCase(), core });
+  }
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <Field label="Subject name" required error={error}><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Mathematics" /></Field>
+      <Field label="Subject code" required hint="Short code used in tables, e.g. MATH"><Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="MATH" /></Field>
+      <Field label="Subject type">
+        <Select value={core ? "core" : "elective"} onChange={(e) => setCore(e.target.value === "core")}>
+          <option value="core">Core</option>
+          <option value="elective">Elective</option>
+        </Select>
+      </Field>
+      <div className="flex justify-end gap-2 pt-2">
+        <Button variant="ghost" type="button" onClick={onCancel}>Cancel</Button>
+        <Button type="submit">Save</Button>
+      </div>
+    </form>
+  );
+}
+
+function AssignmentsTab({ toast }) {
+  const { db, commit } = useDB();
+  const [streamId, setStreamId] = useState(db.streams[0]?.id || "");
+  const teachers = db.users.filter((u) => u.role === "teacher");
+  const stream = db.streams.find((s) => s.id === streamId);
+
+  function assign(subjectId, teacherId) {
+    commit((prev) => {
+      const exists = prev.subjectAssignments.find((a) => a.streamId === streamId && a.subjectId === subjectId);
+      let list;
+      if (!teacherId) {
+        list = prev.subjectAssignments.filter((a) => !(a.streamId === streamId && a.subjectId === subjectId));
+      } else if (exists) {
+        list = prev.subjectAssignments.map((a) => (a.streamId === streamId && a.subjectId === subjectId ? { ...a, teacherId } : a));
+      } else {
+        list = [...prev.subjectAssignments, { id: uid("sa"), streamId, subjectId, teacherId }];
+      }
+      return { ...prev, subjectAssignments: list };
+    });
+  }
+
+  return (
+    <Panel title="Assign subject teachers to a stream">
+      <div className="mb-5 max-w-xs">
+        <Field label="Stream">
+          <Select value={streamId} onChange={(e) => setStreamId(e.target.value)}>
+            {db.streams.map((s) => {
+              const c = db.classes.find((c) => c.id === s.classId);
+              return <option key={s.id} value={s.id}>{c?.name} {s.name}</option>;
+            })}
+          </Select>
+        </Field>
+      </div>
+      {stream ? (
+        <div className="space-y-2">
+          {db.subjects.map((sub) => {
+            const assignment = db.subjectAssignments.find((a) => a.streamId === streamId && a.subjectId === sub.id);
+            return (
+              <div key={sub.id} className="flex items-center justify-between gap-3 py-2.5 border-b border-[#1E2A4A]/6 last:border-0">
+                <div className="min-w-0 flex items-center gap-2">
+                  <span className="text-sm font-medium text-[#1E2A4A]">{sub.name}</span>
+                  {sub.core && <Badge tone="gold">Core</Badge>}
+                </div>
+                <div className="w-48 shrink-0">
+                  <Select value={assignment?.teacherId || ""} onChange={(e) => assign(sub.id, e.target.value)}>
+                    <option value="">— Not assigned —</option>
+                    {teachers.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </Select>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <EmptyState icon="Layers" title="No streams yet" message="Create a class and stream first, in the Classes & Streams tab." />
+      )}
+    </Panel>
+  );
+}
+
+/* ============================================================
+   STAFF (Admin)
+   ============================================================ */
+
+function StaffPage({ toast }) {
+  const { db, commit } = useDB();
+  const [modal, setModal] = useState(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [confirmDel, setConfirmDel] = useState(null);
+  const [search, setSearch] = useState("");
+  const staff = db.users.filter((u) => u.role === "teacher" || u.role === "accountant");
+  const filtered = staff.filter((u) => u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()));
+
+  function save(data) {
+    commit((prev) => {
+      let users = [...prev.users];
+      if (data.id) users = users.map((u) => (u.id === data.id ? { ...u, ...data } : u));
+      else users = [...users, { ...data, id: uid(data.role) }];
+      return { ...prev, users };
+    });
+    toast(data.id ? "Staff member updated" : "Staff member added");
+    setModal(null);
+  }
+  function del() {
+    commit((prev) => ({ ...prev, users: prev.users.filter((u) => u.id !== confirmDel.id) }));
+    toast("Staff member removed");
+  }
+
+  async function exportCSV() {
+    try {
+      const downloads = window.claude ? await window.claude.use("downloads") : null;
+      if (!downloads) { toast("Export isn't available in this view"); return; }
+      const header = "Name,DOB,SubjectTaught,Contact,Email,Role";
+      const lines = filtered.map((u) => {
+        const subs = (u.subjectIds || []).map((id) => db.subjects.find((s) => s.id === id)?.code).filter(Boolean).join(";");
+        return [u.name, u.dob || "", subs, u.phone || "", u.email, u.role].map((v) => '"' + String(v).replace(/"/g, '""') + '"').join(",");
+      });
+      await downloads.save({ filename: "staff_export.csv", data: header + "\n" + lines.join("\n") + "\n" });
+    } catch (err) {
+      if (err && err.code !== "declined") toast("Couldn't prepare the export");
+    }
+  }
+
+  return (
+    <Panel title="Staff Directory" action={
+      <div className="flex gap-2">
+        <Button size="sm" variant="outline" onClick={exportCSV}>Export CSV</Button>
+        <Button size="sm" variant="outline" icon="Plus" onClick={() => setImportOpen(true)}>Import CSV</Button>
+        <Button size="sm" icon="Plus" onClick={() => setModal({ role: "teacher" })}>Add Staff</Button>
+      </div>
+    }>
+      <div className="relative mb-4 max-w-xs">
+        <Icon name="Search" size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#1E2A4A]/35"  />
+        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search staff…" className="pl-8" />
+      </div>
+      <Table
+        columns={["Name", "Role", "DOB", "Contact", ""]}
+        rows={filtered}
+        empty={<EmptyState icon="UserCog" title="No staff found" message="Add teachers or accounting staff." />}
+        renderRow={(u) => {
+          const subs = (u.subjectIds || []).map((id) => db.subjects.find((s) => s.id === id)?.code).filter(Boolean);
+          return (
+            <tr key={u.id} className="border-b border-[#1E2A4A]/6 last:border-0">
+              <td className="py-2.5 pr-4">
+                <div className="font-medium text-[#1E2A4A]">{u.name}</div>
+                <div className="text-xs text-[#1E2A4A]/45 mt-0.5">{u.email}{subs.length > 0 ? " · " + subs.join(", ") : ""}</div>
+              </td>
+              <td className="py-2.5 pr-4"><Badge>{u.role === "teacher" ? "Teacher" : "Accountant"}</Badge></td>
+              <td className="py-2.5 pr-4 text-[#1E2A4A]/60 text-xs">{u.dob || "—"}</td>
+              <td className="py-2.5 pr-4 text-[#1E2A4A]/60 text-xs">{u.phone || "—"}</td>
+              <td className="py-2.5"><RowActions onEdit={() => setModal(u)} onDelete={() => setConfirmDel({ id: u.id, label: u.name })} /></td>
+            </tr>
+          );
+        }}
+      />
+      <Modal open={!!modal} onClose={() => setModal(null)} title={modal?.id ? "Edit Staff Member" : "Add Staff Member"}>
+        <StaffForm initial={modal} subjects={db.subjects} onSave={save} onCancel={() => setModal(null)} />
+      </Modal>
+      <ConfirmDialog open={!!confirmDel} onClose={() => setConfirmDel(null)} onConfirm={del} title="Remove staff member?" message={`"${confirmDel?.label}" will lose access to the system.`} />
+      <StaffImportModal open={importOpen} onClose={() => setImportOpen(false)} toast={toast} />
+    </Panel>
+  );
+}
+
+function StaffImportModal({ open, onClose, toast }) {
+  const { db, commit } = useDB();
+  const [rows, setRows] = useState([]);
+  const [fileName, setFileName] = useState("");
+
+  function handleFile(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const parsed = parseCSV(String(reader.result));
+      const existingEmails = new Set(db.users.map((u) => u.email.toLowerCase()));
+      const resolved = parsed.map((row) => {
+        const name = row.Name || row.name || "";
+        const dob = row.DOB || row.dob || "";
+        const subjectsRaw = row.SubjectTaught || row["Subject Taught"] || row.subjects || "";
+        const contact = row.Contact || row.Phone || row.phone || "";
+        const email = row.Email || row.email || (name.trim() ? name.trim().toLowerCase().replace(/\s+/g, ".") + "@jhs.edu.gh" : "");
+        let error = "";
+        if (!name.trim()) error = "Missing name";
+        else if (existingEmails.has(email.toLowerCase())) error = "Duplicate email";
+        const tokens = subjectsRaw.split(/[,;]/).map((t) => t.trim()).filter(Boolean);
+        const subjectIds = [];
+        const unmatched = [];
+        tokens.forEach((tok) => {
+          const match = db.subjects.find((s) => s.code.toLowerCase() === tok.toLowerCase() || s.name.toLowerCase() === tok.toLowerCase());
+          if (match) subjectIds.push(match.id); else unmatched.push(tok);
+        });
+        return { name: name.trim(), dob, contact: contact.trim(), email: email.trim(), subjectIds, unmatched, error };
+      });
+      setRows(resolved);
+    };
+    reader.readAsText(file);
+  }
+
+  async function downloadTemplate() {
+    try {
+      const downloads = window.claude ? await window.claude.use("downloads") : null;
+      if (!downloads) { toast("Template download isn't available in this view"); return; }
+      const csv = "Name,DOB,SubjectTaught,Contact,Email\nMrs. Ama Boateng,1991-04-10,English Language;Social Studies,0244000099,ama.boateng@jhs.edu.gh\n";
+      await downloads.save({ filename: "staff_import_template.csv", data: csv });
+    } catch (err) {
+      if (err && err.code !== "declined") toast("Couldn't prepare the download");
+    }
+  }
+
+  function commitImport() {
+    const valid = rows.filter((r) => !r.error);
+    if (!valid.length) { toast("No valid rows to import"); return; }
+    commit((prev) => ({
+      ...prev,
+      users: [
+        ...prev.users,
+        ...valid.map((r) => ({
+          id: uid("teacher"), role: "teacher", name: r.name, dob: r.dob, phone: r.contact,
+          email: r.email, password: "welcome123", subjectIds: r.subjectIds,
+        })),
+      ],
+    }));
+    toast("Imported " + valid.length + " staff member" + (valid.length === 1 ? "" : "s"));
+    setRows([]);
+    setFileName("");
+    onClose();
+  }
+
+  const validCount = rows.filter((r) => !r.error).length;
+  const errorCount = rows.length - validCount;
+
+  return (
+    <Modal open={open} onClose={onClose} title="Import Staff from CSV" width="max-w-2xl">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap bg-[#1E2A4A]/5 rounded-md px-3 py-2.5">
+          <p className="text-xs text-[#1E2A4A]/60">Columns: <span className="font-mono">Name, DOB, SubjectTaught, Contact, Email</span>. Separate multiple subjects with a semicolon; match by name or code (e.g. "English Language" or "ENG").</p>
+          <Button size="sm" variant="outline" onClick={downloadTemplate}>Download Template</Button>
+        </div>
+        <label className="flex items-center justify-center gap-2 border-2 border-dashed border-[#1E2A4A]/20 rounded-lg py-6 cursor-pointer hover:bg-[#1E2A4A]/5 text-sm text-[#1E2A4A]/60">
+          <Icon name="Plus" size={16} />
+          {fileName || "Choose a CSV file"}
+          <input type="file" accept=".csv,text/csv" className="hidden" onChange={handleFile} />
+        </label>
+        {rows.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 text-xs mb-2">
+              <Badge tone="green">{validCount} ready</Badge>
+              {errorCount > 0 && <Badge tone="rust">{errorCount} with errors</Badge>}
+            </div>
+            <div className="max-h-64 overflow-y-auto border border-[#1E2A4A]/10 rounded-lg">
+              <table className="w-full text-xs">
+                <thead className="bg-[#1E2A4A]/5 sticky top-0">
+                  <tr className="text-left"><th className="px-2 py-1.5">Name</th><th className="px-2 py-1.5">Subjects</th><th className="px-2 py-1.5">Status</th></tr>
+                </thead>
+                <tbody>
+                  {rows.map((r, i) => (
+                    <tr key={i} className="border-t border-[#1E2A4A]/6">
+                      <td className="px-2 py-1.5">{r.name || "—"}</td>
+                      <td className="px-2 py-1.5">{r.subjectIds.length} matched{r.unmatched && r.unmatched.length > 0 ? ", unmatched: " + r.unmatched.join(", ") : ""}</td>
+                      <td className="px-2 py-1.5">{r.error ? <span className="text-[#A6432D]">{r.error}</span> : <span className="text-[#2F5233]">Ready</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button onClick={commitImport} disabled={!validCount}>Import {validCount || ""} Staff{validCount === 1 ? "" : ""}</Button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+function StaffForm({ initial, subjects, onSave, onCancel }) {
+  const [name, setName] = useState(initial?.name || "");
+  const [email, setEmail] = useState(initial?.email || "");
+  const [phone, setPhone] = useState(initial?.phone || "");
+  const [dob, setDob] = useState(initial?.dob || "");
+  const [role, setRole] = useState(initial?.role || "teacher");
+  const [subjectIds, setSubjectIds] = useState(initial?.subjectIds || []);
+  const [error, setError] = useState("");
+
+  function toggleSubject(id) {
+    setSubjectIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
+  function submit(e) {
+    e.preventDefault();
+    if (!name.trim() || !email.trim()) { setError("Name and email are required"); return; }
+    if (!/^\S+@\S+\.\S+$/.test(email)) { setError("Enter a valid email address"); return; }
+    onSave({
+      id: initial?.id, name: name.trim(), email: email.trim(), phone: phone.trim(), dob, role,
+      password: initial?.password || "welcome123",
+      subjectIds: role === "teacher" ? subjectIds : undefined,
+    });
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <Field label="Full name" required error={error}><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Mrs. Efua Mensah" /></Field>
+      <Field label="Role" required>
+        <Select value={role} onChange={(e) => setRole(e.target.value)}>
+          <option value="teacher">Teacher</option>
+          <option value="accountant">Accountant / Bursar</option>
+        </Select>
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Email" required><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="staff@jhs.edu.gh" /></Field>
+        <Field label="Phone"><Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0244000000" /></Field>
+      </div>
+      <Field label="Date of birth"><Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} /></Field>
+      {role === "teacher" && (
+        <Field label="Subjects taught" hint="Used to filter gradebook access">
+          <div className="flex flex-wrap gap-1.5 mt-1">
+            {subjects.map((s) => (
+              <button
+                type="button"
+                key={s.id}
+                onClick={() => toggleSubject(s.id)}
+                className={`text-xs px-2.5 py-1.5 rounded-full border transition-colors ${
+                  subjectIds.includes(s.id) ? "bg-[#1E2A4A] text-white border-[#1E2A4A]" : "border-[#1E2A4A]/20 text-[#1E2A4A]/70 hover:bg-[#1E2A4A]/5"
+                }`}
+              >
+                {s.code}
+              </button>
+            ))}
+          </div>
+        </Field>
+      )}
+      {!initial?.id && (
+        <div className="text-xs text-[#1E2A4A]/50 bg-[#1E2A4A]/5 rounded-md px-3 py-2">
+          A temporary password <span className="font-mono">welcome123</span> will be set. The staff member should change it after first login.
+        </div>
+      )}
+      <div className="flex justify-end gap-2 pt-2">
+        <Button variant="ghost" type="button" onClick={onCancel}>Cancel</Button>
+        <Button type="submit">Save</Button>
+      </div>
+    </form>
+  );
+}
+
+/* ============================================================
+   STUDENTS (Admin)
+   ============================================================ */
+
+function StudentsPage({ toast, scopedStreamId, readOnly }) {
+  const { db, commit } = useDB();
+  const [modal, setModal] = useState(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [confirmDel, setConfirmDel] = useState(null);
+  const [search, setSearch] = useState("");
+  const [streamFilter, setStreamFilter] = useState(scopedStreamId || "all");
+
+  let students = db.users.filter((u) => u.role === "student");
+  if (scopedStreamId) students = students.filter((s) => s.streamId === scopedStreamId);
+  else if (streamFilter !== "all") students = students.filter((s) => s.streamId === streamFilter);
+  students = students.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()) || s.indexNumber.toLowerCase().includes(search.toLowerCase()));
+
+  function save(data) {
+    commit((prev) => {
+      let users = [...prev.users];
+      if (data.id) users = users.map((u) => (u.id === data.id ? { ...u, ...data } : u));
+      else users = [...users, { ...data, id: uid("student") }];
+      return { ...prev, users };
+    });
+    toast(data.id ? "Student record updated" : "Student enrolled");
+    setModal(null);
+  }
+  function del() {
+    commit((prev) => ({ ...prev, users: prev.users.filter((u) => u.id !== confirmDel.id) }));
+    toast("Student record removed");
+  }
+
+  async function exportCSV() {
+    try {
+      const downloads = window.claude ? await window.claude.use("downloads") : null;
+      if (!downloads) { toast("Export isn't available in this view"); return; }
+      const header = "Name,DOB,Gender,ParentContact,IndexNumber,Class,Stream,Email";
+      const lines = students.map((s) => {
+        const stream = db.streams.find((st) => st.id === s.streamId);
+        const cls = db.classes.find((c) => c.id === stream?.classId);
+        return [s.name, s.dob || "", s.gender || "", s.guardianPhone || "", s.indexNumber, cls ? cls.name : "", stream ? stream.name : "", s.email]
+          .map((v) => '"' + String(v).replace(/"/g, '""') + '"').join(",");
+      });
+      await downloads.save({ filename: "students_export.csv", data: header + "\n" + lines.join("\n") + "\n" });
+    } catch (err) {
+      if (err && err.code !== "declined") toast("Couldn't prepare the export");
+    }
+  }
+
+  return (
+    <Panel title="Student Records" action={!scopedStreamId && !readOnly && (
+      <div className="flex gap-2">
+        <Button size="sm" variant="outline" onClick={exportCSV}>Export CSV</Button>
+        <Button size="sm" variant="outline" icon="Plus" onClick={() => setImportOpen(true)}>Import CSV</Button>
+        <Button size="sm" icon="Plus" onClick={() => setModal({})}>Enroll Student</Button>
+      </div>
+    )}>
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="relative flex-1 max-w-xs">
+          <Icon name="Search" size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#1E2A4A]/35"  />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name or index number…" className="pl-8" />
+        </div>
+        {!scopedStreamId && (
+          <div className="w-full sm:w-52">
+            <Select value={streamFilter} onChange={(e) => setStreamFilter(e.target.value)}>
+              <option value="all">All streams</option>
+              {db.streams.map((s) => {
+                const c = db.classes.find((c) => c.id === s.classId);
+                return <option key={s.id} value={s.id}>{c?.name} {s.name}</option>;
+              })}
+            </Select>
+          </div>
+        )}
+      </div>
+      <Table
+        columns={["Student", "Index No.", "Class", "Parent Contact", ""]}
+        rows={students}
+        empty={<EmptyState icon="GraduationCap" title="No students found" message="Enroll a student to get started." />}
+        renderRow={(s) => {
+          const stream = db.streams.find((st) => st.id === s.streamId);
+          const cls = db.classes.find((c) => c.id === stream?.classId);
+          return (
+            <tr key={s.id} className="border-b border-[#1E2A4A]/6 last:border-0">
+              <td className="py-2.5 pr-4">
+                <div className="flex items-center gap-2.5">
+                  {s.photo ? (
+                    <img src={s.photo} alt="" className="w-7 h-7 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-[#1E2A4A]/8 flex items-center justify-center text-[10px] font-medium text-[#1E2A4A] shrink-0">
+                      {s.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                    </div>
+                  )}
+                  <span className="font-medium text-[#1E2A4A]">{s.name}</span>
+                </div>
+              </td>
+              <td className="py-2.5 pr-4 font-mono text-xs text-[#1E2A4A]/60">{s.indexNumber}</td>
+              <td className="py-2.5 pr-4 text-[#1E2A4A]/60">{cls ? `${cls.name} ${stream.name}` : "—"}</td>
+              <td className="py-2.5 pr-4 text-[#1E2A4A]/60 text-xs">{s.guardianPhone || "—"}</td>
+              <td className="py-2.5">{!readOnly && <RowActions onEdit={() => setModal(s)} onDelete={() => setConfirmDel({ id: s.id, label: s.name })} />}</td>
+            </tr>
+          );
+        }}
+      />
+      <Modal open={!!modal} onClose={() => setModal(null)} title={modal?.id ? "Edit Student Record" : "Enroll Student"}>
+        <StudentForm initial={modal} db={db} onSave={save} onCancel={() => setModal(null)} />
+      </Modal>
+      <ConfirmDialog open={!!confirmDel} onClose={() => setConfirmDel(null)} onConfirm={del} title="Remove student record?" message={`"${confirmDel?.label}" and all associated records will be affected.`} />
+      <StudentImportModal open={importOpen} onClose={() => setImportOpen(false)} toast={toast} />
+    </Panel>
+  );
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let cur = "", inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (line[i + 1] === '"') { cur += '"'; i++; } else { inQuotes = false; }
+      } else cur += ch;
+    } else {
+      if (ch === '"') inQuotes = true;
+      else if (ch === ",") { result.push(cur); cur = ""; }
+      else cur += ch;
+    }
+  }
+  result.push(cur);
+  return result;
+}
+
+function parseCSV(text) {
+  const lines = text.split(/\r\n|\n|\r/).filter((l) => l.trim().length > 0);
+  if (!lines.length) return [];
+  const headers = parseCSVLine(lines[0]).map((h) => h.trim());
+  return lines.slice(1).map((line) => {
+    const cells = parseCSVLine(line);
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = (cells[i] || "").trim(); });
+    return obj;
+  });
+}
+
+function StudentImportModal({ open, onClose, toast }) {
+  const { db, commit } = useDB();
+  const [rows, setRows] = useState([]);
+  const [fileName, setFileName] = useState("");
+
+  function handleFile(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const parsed = parseCSV(String(reader.result));
+      const existingIndexes = new Set(db.users.filter((u) => u.role === "student").map((u) => u.indexNumber.toLowerCase()));
+      const resolved = parsed.map((row) => {
+        const name = row.Name || row.name || "";
+        const indexNumber = row.IndexNumber || row["Index Number"] || row.indexnumber || "";
+        const className = row.Class || row.class || "";
+        const streamName = row.Stream || row.stream || "";
+        const dob = row.DOB || row.dob || "";
+        const gender = (row.Gender || row.gender || "F").toUpperCase().indexOf("M") === 0 ? "M" : "F";
+        const guardianPhone = row.ParentContact || row["Parent Contact"] || row.GuardianPhone || row.guardianPhone || "";
+        const email = row.Email || row.email || "";
+        let error = "";
+        if (!name.trim()) error = "Missing name";
+        else if (!indexNumber.trim()) error = "Missing index number";
+        else if (existingIndexes.has(indexNumber.trim().toLowerCase())) error = "Duplicate index number";
+        let stream = null;
+        if (!error) {
+          const cls = db.classes.find((c) => c.name.toLowerCase() === className.trim().toLowerCase());
+          stream = cls ? db.streams.find((st) => st.classId === cls.id && st.name.toLowerCase() === streamName.trim().toLowerCase()) : null;
+          if (!stream) error = 'Class/stream "' + className + " " + streamName + '" not found';
+        }
+        return { name: name.trim(), indexNumber: indexNumber.trim(), dob, gender, guardianPhone: guardianPhone.trim(), email: email.trim(), streamId: stream ? stream.id : null, error };
+      });
+      setRows(resolved);
+    };
+    reader.readAsText(file);
+  }
+
+  async function downloadTemplate() {
+    try {
+      const downloads = window.claude ? await window.claude.use("downloads") : null;
+      if (!downloads) { toast("Template download isn't available in this view"); return; }
+      const csv = "Name,IndexNumber,DOB,Gender,Class,Stream,ParentContact,Email\nAma Serwaa,JHS/25/010,2012-03-14,F,JHS 1,A,0244000099,ama.new@jhs.edu.gh\n";
+      await downloads.save({ filename: "student_import_template.csv", data: csv });
+    } catch (err) {
+      if (err && err.code !== "declined") toast("Couldn't prepare the download");
+    }
+  }
+
+  function commitImport() {
+    const valid = rows.filter((r) => !r.error);
+    if (!valid.length) { toast("No valid rows to import"); return; }
+    commit((prev) => ({
+      ...prev,
+      users: [
+        ...prev.users,
+        ...valid.map((r) => ({
+          id: uid("student"), role: "student", name: r.name, indexNumber: r.indexNumber,
+          dob: r.dob, gender: r.gender, streamId: r.streamId, guardianId: null, guardianPhone: r.guardianPhone, photo: null,
+          email: r.email || (r.name.toLowerCase().replace(/\s+/g, ".") + "@jhs.edu.gh"),
+          password: "student123",
+        })),
+      ],
+    }));
+    toast("Imported " + valid.length + " student" + (valid.length === 1 ? "" : "s"));
+    setRows([]);
+    setFileName("");
+    onClose();
+  }
+
+  const validCount = rows.filter((r) => !r.error).length;
+  const errorCount = rows.length - validCount;
+
+  return (
+    <Modal open={open} onClose={onClose} title="Import Students from CSV" width="max-w-2xl">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap bg-[#1E2A4A]/5 rounded-md px-3 py-2.5">
+          <p className="text-xs text-[#1E2A4A]/60">Columns: <span className="font-mono">Name, IndexNumber, DOB, Gender, Class, Stream, ParentContact, Email</span>. Class/Stream must match existing ones exactly (e.g. "JHS 1", "A").</p>
+          <Button size="sm" variant="outline" onClick={downloadTemplate}>Download Template</Button>
+        </div>
+        <label className="flex items-center justify-center gap-2 border-2 border-dashed border-[#1E2A4A]/20 rounded-lg py-6 cursor-pointer hover:bg-[#1E2A4A]/5 text-sm text-[#1E2A4A]/60">
+          <Icon name="Plus" size={16} />
+          {fileName || "Choose a CSV file"}
+          <input type="file" accept=".csv,text/csv" className="hidden" onChange={handleFile} />
+        </label>
+        {rows.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 text-xs mb-2">
+              <Badge tone="green">{validCount} ready</Badge>
+              {errorCount > 0 && <Badge tone="rust">{errorCount} with errors</Badge>}
+            </div>
+            <div className="max-h-64 overflow-y-auto border border-[#1E2A4A]/10 rounded-lg">
+              <table className="w-full text-xs">
+                <thead className="bg-[#1E2A4A]/5 sticky top-0">
+                  <tr className="text-left"><th className="px-2 py-1.5">Name</th><th className="px-2 py-1.5">Index No.</th><th className="px-2 py-1.5">Status</th></tr>
+                </thead>
+                <tbody>
+                  {rows.map((r, i) => (
+                    <tr key={i} className="border-t border-[#1E2A4A]/6">
+                      <td className="px-2 py-1.5">{r.name || "—"}</td>
+                      <td className="px-2 py-1.5 font-mono">{r.indexNumber || "—"}</td>
+                      <td className="px-2 py-1.5">{r.error ? <span className="text-[#A6432D]">{r.error}</span> : <span className="text-[#2F5233]">Ready</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button onClick={commitImport} disabled={!validCount}>Import {validCount || ""} Student{validCount === 1 ? "" : "s"}</Button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+function StudentForm({ initial, db, onSave, onCancel }) {
+  const [name, setName] = useState(initial?.name || "");
+  const [dob, setDob] = useState(initial?.dob || "");
+  const [gender, setGender] = useState(initial?.gender || "F");
+  const [streamId, setStreamId] = useState(initial?.streamId || db.streams[0]?.id || "");
+  const [indexNumber, setIndexNumber] = useState(initial?.indexNumber || "");
+  const [guardianId, setGuardianId] = useState(initial?.guardianId || "");
+  const [guardianPhone, setGuardianPhone] = useState(initial?.guardianPhone || "");
+  const [photo, setPhoto] = useState(initial?.photo || null);
+  const [error, setError] = useState("");
+  const guardians = db.users.filter((u) => u.role === "parent");
+
+  function submit(e) {
+    e.preventDefault();
+    if (!name.trim() || !indexNumber.trim()) { setError("Name and index number are required"); return; }
+    onSave({
+      id: initial?.id, name: name.trim(), dob, gender, streamId, indexNumber: indexNumber.trim(),
+      guardianId: guardianId || null, guardianPhone: guardianPhone.trim(),
+      email: initial?.email || `${name.toLowerCase().replace(/\s+/g, ".")}@jhs.edu.gh`,
+      password: initial?.password || "student123", role: "student", photo,
+    });
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <Field label="Student photo"><ImageUpload value={photo} onChange={setPhoto} label="Upload photo" round /></Field>
+      <Field label="Full name" required error={error}><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ama Serwaa" /></Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Date of birth"><Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} /></Field>
+        <Field label="Gender">
+          <Select value={gender} onChange={(e) => setGender(e.target.value)}>
+            <option value="F">Female</option>
+            <option value="M">Male</option>
+          </Select>
+        </Field>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Index number" required><Input value={indexNumber} onChange={(e) => setIndexNumber(e.target.value)} placeholder="JHS/25/004" /></Field>
+        <Field label="Class / Stream">
+          <Select value={streamId} onChange={(e) => setStreamId(e.target.value)}>
+            {db.streams.map((s) => {
+              const c = db.classes.find((c) => c.id === s.classId);
+              return <option key={s.id} value={s.id}>{c?.name} {s.name}</option>;
+            })}
+          </Select>
+        </Field>
+      </div>
+      <Field label="Parent/Guardian">
+        <Select value={guardianId} onChange={(e) => setGuardianId(e.target.value)}>
+          <option value="">— None linked —</option>
+          {guardians.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+        </Select>
+      </Field>
+      <Field label="Parent's Contact" hint="Phone number shown on records, even without a linked parent login"><Input value={guardianPhone} onChange={(e) => setGuardianPhone(e.target.value)} placeholder="0244000000" /></Field>
+      <div className="flex justify-end gap-2 pt-2">
+        <Button variant="ghost" type="button" onClick={onCancel}>Cancel</Button>
+        <Button type="submit">Save</Button>
+      </div>
+    </form>
+  );
+}
+
+/* ============================================================
+   GRADING SCALE (Admin)
+   ============================================================ */
+
+function GradingScalePage({ toast }) {
+  const { db, commit } = useDB();
+  const [rows, setRows] = useState(db.gradingScale);
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => { setRows(db.gradingScale); setDirty(false); }, [db.gradingScale]);
+
+  function update(id, field, value) {
+    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
+    setDirty(true);
+  }
+  function addRow() {
+    setRows((prev) => [...prev, { id: uid("g"), min: 0, max: 0, grade: "", description: "" }]);
+    setDirty(true);
+  }
+  function removeRow(id) {
+    setRows((prev) => prev.filter((r) => r.id !== id));
+    setDirty(true);
+  }
+  function save() {
+    const sorted = [...rows].sort((a, b) => b.min - a.min);
+    for (let i = 0; i < sorted.length - 1; i++) {
+      if (Number(sorted[i].min) <= Number(sorted[i + 1].max)) {
+        toast("Ranges overlap — check your min/max values");
+        return;
+      }
+    }
+    commit((prev) => ({ ...prev, gradingScale: sorted }));
+    toast("Grading scale saved");
+    setDirty(false);
+  }
+
+  return (
+    <Panel
+      title="Grading Scale"
+      action={<div className="flex gap-2"><Button size="sm" variant="outline" icon="Plus" onClick={addRow}>Add Band</Button>{dirty && <Button size="sm" onClick={save}>Save Changes</Button>}</div>}
+    >
+      <p className="text-sm text-[#1E2A4A]/55 mb-4">This scale determines how numeric scores convert to grades on every report card. Changes apply school-wide.</p>
+      <div className="overflow-x-auto -mx-5 px-5">
+        <table className="w-full text-sm min-w-[520px]">
+          <thead>
+            <tr className="text-left text-[11px] uppercase tracking-wide text-[#1E2A4A]/40 border-b border-[#1E2A4A]/10">
+              <th className="pb-2.5 font-medium pr-4">Min score</th>
+              <th className="pb-2.5 font-medium pr-4">Max score</th>
+              <th className="pb-2.5 font-medium pr-4">Grade</th>
+              <th className="pb-2.5 font-medium pr-4">Description</th>
+              <th className="pb-2.5"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.sort((a, b) => b.min - a.min).map((r) => (
+              <tr key={r.id} className="border-b border-[#1E2A4A]/6 last:border-0">
+                <td className="py-2 pr-4"><input type="number" value={r.min} onChange={(e) => update(r.id, "min", Number(e.target.value))} className="w-20 rounded-md border border-[#1E2A4A]/20 px-2 py-1.5 text-sm" /></td>
+                <td className="py-2 pr-4"><input type="number" value={r.max} onChange={(e) => update(r.id, "max", Number(e.target.value))} className="w-20 rounded-md border border-[#1E2A4A]/20 px-2 py-1.5 text-sm" /></td>
+                <td className="py-2 pr-4"><input value={r.grade} onChange={(e) => update(r.id, "grade", e.target.value)} className="w-16 rounded-md border border-[#1E2A4A]/20 px-2 py-1.5 text-sm font-medium" /></td>
+                <td className="py-2 pr-4"><input value={r.description} onChange={(e) => update(r.id, "description", e.target.value)} className="w-full rounded-md border border-[#1E2A4A]/20 px-2 py-1.5 text-sm" /></td>
+                <td className="py-2"><button onClick={() => removeRow(r.id)} className="p-1.5 rounded-md text-[#1E2A4A]/40 hover:bg-[#A6432D]/10 hover:text-[#A6432D]"><Icon name="Trash2" size={14}  /></button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Panel>
+  );
+}
+
+/* ============================================================
+   SCHOOL SETTINGS (Admin)
+   ============================================================ */
+
+function SchoolSettingsPage({ toast }) {
+  const { db, commit } = useDB();
+  const [form, setForm] = useState(db.school);
+  function set(k, v) { setForm((f) => ({ ...f, [k]: v })); }
+  function save(e) {
+    e.preventDefault();
+    commit((prev) => ({ ...prev, school: form }));
+    toast("School settings saved");
+  }
+  return (
+    <Panel title="School Information">
+      <form onSubmit={save} className="space-y-4 max-w-lg">
+        <Field label="School logo"><ImageUpload value={form.logo} onChange={(v) => set("logo", v)} label="Upload logo" /></Field>
+        <Field label="School name" required><Input value={form.name} onChange={(e) => set("name", e.target.value)} /></Field>
+        <Field label="Motto"><Input value={form.motto} onChange={(e) => set("motto", e.target.value)} /></Field>
+        <Field label="Teacher registration code" hint="Teachers need this code to create their own login"><Input value={form.staffCode || ""} onChange={(e) => set("staffCode", e.target.value)} /></Field>
+        <Field label="Address"><Input value={form.address} onChange={(e) => set("address", e.target.value)} /></Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Phone"><Input value={form.phone} onChange={(e) => set("phone", e.target.value)} /></Field>
+          <Field label="Email"><Input value={form.email} onChange={(e) => set("email", e.target.value)} /></Field>
+        </div>
+        <div className="pt-2"><Button type="submit">Save Changes</Button></div>
+      </form>
+    </Panel>
+  );
+}
+
+/* ============================================================
+   PLACEHOLDER PAGES for roles not yet built (Stage 2+)
+   ============================================================ */
+
+
+function ReportCardView({ db, studentId, termId, editable, onSaveRemark, onUpdatePhoto }) {
+  const report = computeReport(db, studentId, termId);
+  const [conduct, setConduct] = useState(report ? report.remark.conduct : "");
+  const [teacherRemark, setTeacherRemark] = useState(report ? report.remark.teacherRemark : "");
+  const [headteacherRemark, setHeadteacherRemark] = useState(report ? report.remark.headteacherRemark : "");
+  const [promotion, setPromotion] = useState(report ? report.remark.promotion : "");
+
+  useEffect(() => {
+    const r = computeReport(db, studentId, termId);
+    setConduct(r ? r.remark.conduct : "");
+    setTeacherRemark(r ? r.remark.teacherRemark : "");
+    setHeadteacherRemark(r ? r.remark.headteacherRemark : "");
+    setPromotion(r ? r.remark.promotion : "");
+  }, [studentId, termId]);
+
+  if (!report) return <EmptyState icon="ClipboardList" title="No data" message="This student has no report data yet." />;
+  const { student, stream, cls, term, year, subjectResults, overallAverage, overallPosition, classSize, attendance } = report;
+  const school = db.school;
+  const attendancePct = attendance.totalDays ? Math.round((attendance.daysPresent / attendance.totalDays) * 100) : 0;
+
+  function save() {
+    onSaveRemark({ conduct, teacherRemark, headteacherRemark, promotion });
+  }
+
+  return (
+    <div>
+      {editable && (
+        <div className="no-print flex justify-end mb-3">
+          <Button size="sm" onClick={() => window.print()} icon="ClipboardList">Print / Save as PDF</Button>
+        </div>
+      )}
+      <div className="print-area report-page bg-white border border-[#1E2A4A]/10 rounded-xl p-6 md:p-8 max-w-3xl mx-auto">
+        <div className="flex items-start justify-between gap-4 border-b-2 border-[#1E2A4A] pb-4 mb-4">
+          <div className="flex items-center gap-3">
+            {school.logo ? <img src={school.logo} alt="" className="w-14 h-14 object-contain" /> : <div className="w-14 h-14 rounded-full bg-[#1E2A4A] flex items-center justify-center"><Icon name="School" size={24} className="text-white" /></div>}
+            <div>
+              <h1 className="font-serif text-lg md:text-xl text-[#1E2A4A] leading-tight">{school.name}</h1>
+              <p className="text-[11px] text-[#1E2A4A]/55">{school.address}</p>
+              <p className="text-[11px] text-[#1E2A4A]/55">{school.phone} &middot; {school.email}</p>
+            </div>
+          </div>
+          {editable ? (
+            <label className="no-print block w-16 h-20 rounded border border-dashed border-[#1E2A4A]/25 bg-[#1E2A4A]/5 cursor-pointer overflow-hidden relative group shrink-0">
+              {student.photo ? (
+                <img src={student.photo} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="no-print w-full h-full flex items-center justify-center text-[9px] text-[#1E2A4A]/45 text-center px-1">Click to add photo</div>
+              )}
+              <span className="absolute inset-0 bg-[#1E2A4A]/0 group-hover:bg-[#1E2A4A]/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                <Icon name="Pencil" size={14} className="text-white" />
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files && e.target.files[0];
+                  if (!file || !onUpdatePhoto) return;
+                  const reader = new FileReader();
+                  reader.onload = () => onUpdatePhoto(studentId, reader.result);
+                  reader.readAsDataURL(file);
+                }}
+              />
+            </label>
+          ) : student.photo ? (
+            <img src={student.photo} alt="" className="w-16 h-20 object-cover rounded border border-[#1E2A4A]/15" />
+          ) : (
+            <div className="w-16 h-20 rounded border border-[#1E2A4A]/15 bg-[#1E2A4A]/6 flex items-center justify-center text-[10px] text-[#1E2A4A]/40">Photo</div>
+          )}
+        </div>
+
+        <div className="text-center mb-4">
+          <h2 className="font-serif text-base text-[#1E2A4A] uppercase tracking-wide">Terminal Report</h2>
+          <p className="text-xs text-[#1E2A4A]/55">{year ? year.label : ""} &middot; {term ? term.label : ""}</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-[13px] mb-5">
+          <div><span className="text-[#1E2A4A]/50">Name: </span><span className="font-medium text-[#1E2A4A]">{student.name}</span></div>
+          <div><span className="text-[#1E2A4A]/50">Index No: </span><span className="font-medium text-[#1E2A4A] font-mono">{student.indexNumber}</span></div>
+          <div><span className="text-[#1E2A4A]/50">Class: </span><span className="font-medium text-[#1E2A4A]">{cls ? cls.name : ""} {stream ? stream.name : ""}</span></div>
+          <div><span className="text-[#1E2A4A]/50">Class Size: </span><span className="font-medium text-[#1E2A4A]">{classSize}</span></div>
+        </div>
+
+        <table className="w-full text-[12px] border-collapse mb-5">
+          <thead>
+            <tr className="bg-[#1E2A4A]/6 text-left">
+              <th className="px-2 py-1.5 border border-[#1E2A4A]/15">Subject</th>
+              <th className="px-2 py-1.5 border border-[#1E2A4A]/15 text-center">Class Mark (40)</th>
+              <th className="px-2 py-1.5 border border-[#1E2A4A]/15 text-center">Exam Mark (60)</th>
+              <th className="px-2 py-1.5 border border-[#1E2A4A]/15 text-center">Total</th>
+              <th className="px-2 py-1.5 border border-[#1E2A4A]/15 text-center">Grade</th>
+              <th className="px-2 py-1.5 border border-[#1E2A4A]/15">Remark</th>
+              <th className="px-2 py-1.5 border border-[#1E2A4A]/15 text-center">Position</th>
+            </tr>
+          </thead>
+          <tbody>
+            {subjectResults.map((r) => (
+              <tr key={r.subjectId}>
+                <td className="px-2 py-1.5 border border-[#1E2A4A]/15 font-medium text-[#1E2A4A]">{r.name}</td>
+                <td className="px-2 py-1.5 border border-[#1E2A4A]/15 text-center">{r.hasScore ? r.classMark : "—"}</td>
+                <td className="px-2 py-1.5 border border-[#1E2A4A]/15 text-center">{r.hasScore ? r.examMark : "—"}</td>
+                <td className="px-2 py-1.5 border border-[#1E2A4A]/15 text-center font-medium">{r.hasScore ? r.total : "—"}</td>
+                <td className="px-2 py-1.5 border border-[#1E2A4A]/15 text-center font-medium">{r.hasScore ? r.grade : "—"}</td>
+                <td className="px-2 py-1.5 border border-[#1E2A4A]/15">{r.hasScore ? r.description : "Not yet graded"}</td>
+                <td className="px-2 py-1.5 border border-[#1E2A4A]/15 text-center">{r.hasScore ? ordinal(r.position) + "/" + r.outOf : "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5 text-center">
+          <div className="border border-[#1E2A4A]/12 rounded-md p-2.5">
+            <div className="text-[10px] text-[#1E2A4A]/50 uppercase">Average</div>
+            <div className="font-serif text-lg text-[#1E2A4A]">{overallAverage !== null ? overallAverage.toFixed(1) : "—"}</div>
+          </div>
+          <div className="border border-[#1E2A4A]/12 rounded-md p-2.5">
+            <div className="text-[10px] text-[#1E2A4A]/50 uppercase">Position</div>
+            <div className="font-serif text-lg text-[#1E2A4A]">{overallPosition !== null ? ordinal(overallPosition) + "/" + report.overallOutOf : "—"}</div>
+          </div>
+          <div className="border border-[#1E2A4A]/12 rounded-md p-2.5">
+            <div className="text-[10px] text-[#1E2A4A]/50 uppercase">Attendance</div>
+            <div className="font-serif text-lg text-[#1E2A4A]">{attendance.daysPresent}/{attendance.totalDays} ({attendancePct}%)</div>
+          </div>
+          <div className="border border-[#1E2A4A]/12 rounded-md p-2.5">
+            <div className="text-[10px] text-[#1E2A4A]/50 uppercase">Conduct</div>
+            {editable ? (
+              <select className="text-sm font-medium text-[#1E2A4A] bg-transparent text-center w-full" value={conduct} onChange={(e) => setConduct(e.target.value)}>
+                <option value="">&mdash;</option>
+                <option>Excellent</option><option>Very Good</option><option>Good</option><option>Fair</option><option>Needs Improvement</option>
+              </select>
+            ) : <div className="font-serif text-lg text-[#1E2A4A]">{conduct || "\u2014"}</div>}
+          </div>
+        </div>
+
+        <div className="space-y-3 mb-6 text-[13px]">
+          <div>
+            <div className="text-[11px] text-[#1E2A4A]/50 uppercase mb-1">Teacher's Remark</div>
+            {editable ? <textarea rows={2} className={inputCls} value={teacherRemark} onChange={(e) => setTeacherRemark(e.target.value)} /> : <p className="text-[#1E2A4A]">{teacherRemark || "\u2014"}</p>}
+          </div>
+          <div>
+            <div className="text-[11px] text-[#1E2A4A]/50 uppercase mb-1">Headteacher's Remark</div>
+            {editable ? <textarea rows={2} className={inputCls} value={headteacherRemark} onChange={(e) => setHeadteacherRemark(e.target.value)} /> : <p className="text-[#1E2A4A]">{headteacherRemark || "\u2014"}</p>}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-[#1E2A4A]/50 uppercase">Promotion Status:</span>
+            {editable ? (
+              <select className="text-sm font-medium text-[#1E2A4A] border border-[#1E2A4A]/20 rounded px-2 py-1" value={promotion} onChange={(e) => setPromotion(e.target.value)}>
+                <option value="">&mdash; Not set &mdash;</option>
+                <option>Promoted</option><option>On Probation</option><option>Repeated</option>
+              </select>
+            ) : <span className="font-medium text-[#1E2A4A]">{promotion || "\u2014"}</span>}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-8 pt-6 mt-6 border-t border-[#1E2A4A]/15">
+          <div className="text-center">
+            <div className="border-b border-[#1E2A4A]/40 h-10"></div>
+            <p className="text-[11px] text-[#1E2A4A]/50 mt-1">Class Teacher's Signature</p>
+          </div>
+          <div className="text-center">
+            <div className="border-b border-[#1E2A4A]/40 h-10"></div>
+            <p className="text-[11px] text-[#1E2A4A]/50 mt-1">Headteacher's Signature</p>
+          </div>
+        </div>
+      </div>
+      {editable && (
+        <div className="no-print flex justify-center mt-4">
+          <Button onClick={save} icon="Check">Save Remarks</Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminResultsPage({ toast }) {
+  const { db, commit } = useDB();
+  const [streamId, setStreamId] = useState(db.streams[0] ? db.streams[0].id : "");
+  const [subjectId, setSubjectId] = useState(db.subjects[0] ? db.subjects[0].id : "");
+  const activeYear = db.academicYears.find((y) => y.isActive);
+  const activeTerm = db.terms.find((t) => t.isActive && t.academicYearId === (activeYear ? activeYear.id : null));
+  const [termId, setTermId] = useState(activeTerm ? activeTerm.id : (db.terms[0] ? db.terms[0].id : ""));
+  const [rows, setRows] = useState({});
+  const students = db.users.filter((u) => u.role === "student" && u.streamId === streamId);
+  const assignment = db.subjectAssignments.find((a) => a.streamId === streamId && a.subjectId === subjectId);
+  const assignedTeacher = assignment ? db.users.find((u) => u.id === assignment.teacherId) : null;
+
+  useEffect(() => {
+    const init = {};
+    students.forEach((s) => {
+      const sc = db.scores.find((x) => x.studentId === s.id && x.subjectId === subjectId && x.termId === termId);
+      init[s.id] = { classMark: sc ? sc.classMark : "", examMark: sc ? sc.examMark : "" };
+    });
+    setRows(init);
+  }, [streamId, subjectId, termId]);
+
+  function update(sid, field, val) {
+    const cap = field === "classMark" ? 40 : 60;
+    const num = val === "" ? "" : Math.max(0, Math.min(cap, Number(val)));
+    setRows((prev) => ({ ...prev, [sid]: { ...prev[sid], [field]: num } }));
+  }
+
+  function save() {
+    commit((prev) => {
+      let scores = [...prev.scores];
+      students.forEach((s) => {
+        const classMark = rows[s.id] && rows[s.id].classMark !== "" ? Number(rows[s.id].classMark) : 0;
+        const examMark = rows[s.id] && rows[s.id].examMark !== "" ? Number(rows[s.id].examMark) : 0;
+        const existing = scores.find((x) => x.studentId === s.id && x.subjectId === subjectId && x.termId === termId);
+        if (existing) scores = scores.map((x) => (x === existing ? { ...x, classMark, examMark } : x));
+        else scores = [...scores, { id: uid("score"), studentId: s.id, subjectId, termId, classMark, examMark }];
+      });
+      return { ...prev, scores };
+    });
+    toast("Marks saved");
+  }
+
+  return (
+    <Panel title="Results Entry — all subjects and classes" action={<Button size="sm" onClick={save} icon="Check">Save Marks</Button>}>
+      <p className="text-sm text-[#1E2A4A]/55 mb-4">As administrator you can enter or correct marks for any class and subject here. Subject teachers normally do this from their own Gradebook.</p>
+      <div className="grid sm:grid-cols-3 gap-3 mb-2">
+        <Field label="Stream">
+          <Select value={streamId} onChange={(e) => setStreamId(e.target.value)}>
+            {db.streams.map((s) => { const c = db.classes.find((x) => x.id === s.classId); return <option key={s.id} value={s.id}>{c ? c.name : ""} {s.name}</option>; })}
+          </Select>
+        </Field>
+        <Field label="Subject">
+          <Select value={subjectId} onChange={(e) => setSubjectId(e.target.value)}>
+            {db.subjects.map((sub) => <option key={sub.id} value={sub.id}>{sub.name}</option>)}
+          </Select>
+        </Field>
+        <Field label="Term">
+          <Select value={termId} onChange={(e) => setTermId(e.target.value)}>
+            {db.terms.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+          </Select>
+        </Field>
+      </div>
+      <p className="text-xs text-[#1E2A4A]/45 mb-5">
+        {assignedTeacher ? <>Assigned subject teacher: <span className="font-medium text-[#1E2A4A]/70">{assignedTeacher.name}</span></> : <span className="text-[#A6432D]/80">No teacher assigned to this subject for this stream yet.</span>}
+      </p>
+      <Table
+        columns={["Student", "Class Mark (/40)", "Exam Mark (/60)", "Total"]}
+        rows={students}
+        empty={<EmptyState icon="GraduationCap" title="No students" message="This stream has no enrolled students." />}
+        renderRow={(s) => {
+          const r = rows[s.id] || { classMark: "", examMark: "" };
+          const total = (Number(r.classMark) || 0) + (Number(r.examMark) || 0);
+          return (
+            <tr key={s.id} className="border-b border-[#1E2A4A]/6 last:border-0">
+              <td className="py-2 pr-4 font-medium text-[#1E2A4A]">{s.name}</td>
+              <td className="py-2 pr-4"><input type="number" min="0" max="40" value={r.classMark} onChange={(e) => update(s.id, "classMark", e.target.value)} className="w-20 rounded-md border border-[#1E2A4A]/20 px-2 py-1.5 text-sm" /></td>
+              <td className="py-2 pr-4"><input type="number" min="0" max="60" value={r.examMark} onChange={(e) => update(s.id, "examMark", e.target.value)} className="w-20 rounded-md border border-[#1E2A4A]/20 px-2 py-1.5 text-sm" /></td>
+              <td className="py-2 pr-4 font-medium">{total}</td>
+            </tr>
+          );
+        }}
+      />
+    </Panel>
+  );
+}
+
+function GradebookPage({ user, toast }) {
+  const { db, commit } = useDB();
+  const myAssignments = db.subjectAssignments.filter((a) => a.teacherId === user.id);
+  const streamIds = [...new Set(myAssignments.map((a) => a.streamId))];
+  const [streamId, setStreamId] = useState(streamIds[0] || "");
+  const subjectsForStream = myAssignments.filter((a) => a.streamId === streamId).map((a) => a.subjectId);
+  const [subjectId, setSubjectId] = useState(subjectsForStream[0] || "");
+  const activeYear = db.academicYears.find((y) => y.isActive);
+  const activeTerm = db.terms.find((t) => t.isActive && t.academicYearId === (activeYear ? activeYear.id : null));
+  const [termId, setTermId] = useState(activeTerm ? activeTerm.id : (db.terms[0] ? db.terms[0].id : ""));
+  const [rows, setRows] = useState({});
+  const students = db.users.filter((u) => u.role === "student" && u.streamId === streamId);
+
+  useEffect(() => {
+    const init = {};
+    students.forEach((s) => {
+      const sc = db.scores.find((x) => x.studentId === s.id && x.subjectId === subjectId && x.termId === termId);
+      init[s.id] = { classMark: sc ? sc.classMark : "", examMark: sc ? sc.examMark : "" };
+    });
+    setRows(init);
+  }, [streamId, subjectId, termId]);
+
+  if (!streamIds.length) return <EmptyState icon="BookOpen" title="No subjects assigned" message="Ask an administrator to assign you to a subject and stream." />;
+
+  function update(sid, field, val) {
+    const cap = field === "classMark" ? 40 : 60;
+    const num = val === "" ? "" : Math.max(0, Math.min(cap, Number(val)));
+    setRows((prev) => ({ ...prev, [sid]: { ...prev[sid], [field]: num } }));
+  }
+
+  function save() {
+    commit((prev) => {
+      let scores = [...prev.scores];
+      students.forEach((s) => {
+        const classMark = rows[s.id] && rows[s.id].classMark !== "" ? Number(rows[s.id].classMark) : 0;
+        const examMark = rows[s.id] && rows[s.id].examMark !== "" ? Number(rows[s.id].examMark) : 0;
+        const existing = scores.find((x) => x.studentId === s.id && x.subjectId === subjectId && x.termId === termId);
+        if (existing) scores = scores.map((x) => (x === existing ? { ...x, classMark, examMark } : x));
+        else scores = [...scores, { id: uid("score"), studentId: s.id, subjectId, termId, classMark, examMark }];
+      });
+      return { ...prev, scores };
+    });
+    toast("Marks saved");
+  }
+
+  return (
+    <Panel title="Score Entry" action={<Button size="sm" onClick={save} icon="Check">Save Marks</Button>}>
+      <div className="grid sm:grid-cols-3 gap-3 mb-5">
+        <Field label="Stream">
+          <Select value={streamId} onChange={(e) => {
+            const newStreamId = e.target.value;
+            setStreamId(newStreamId);
+            const subs = myAssignments.filter((a) => a.streamId === newStreamId).map((a) => a.subjectId);
+            setSubjectId(subs[0] || "");
+          }}>
+            {streamIds.map((sid) => { const s = db.streams.find((x) => x.id === sid); const c = db.classes.find((x) => x.id === (s ? s.classId : null)); return <option key={sid} value={sid}>{c ? c.name : ""} {s ? s.name : ""}</option>; })}
+          </Select>
+        </Field>
+        <Field label="Subject">
+          <Select value={subjectId} onChange={(e) => setSubjectId(e.target.value)}>
+            {subjectsForStream.map((sid) => { const s = db.subjects.find((x) => x.id === sid); return <option key={sid} value={sid}>{s ? s.name : ""}</option>; })}
+          </Select>
+        </Field>
+        <Field label="Term">
+          <Select value={termId} onChange={(e) => setTermId(e.target.value)}>
+            {db.terms.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+          </Select>
+        </Field>
+      </div>
+      <Table
+        columns={["Student", "Class Mark (/40)", "Exam Mark (/60)", "Total"]}
+        rows={students}
+        empty={<EmptyState icon="GraduationCap" title="No students" message="This stream has no enrolled students." />}
+        renderRow={(s) => {
+          const r = rows[s.id] || { classMark: "", examMark: "" };
+          const total = (Number(r.classMark) || 0) + (Number(r.examMark) || 0);
+          return (
+            <tr key={s.id} className="border-b border-[#1E2A4A]/6 last:border-0">
+              <td className="py-2 pr-4 font-medium text-[#1E2A4A]">{s.name}</td>
+              <td className="py-2 pr-4"><input type="number" min="0" max="40" value={r.classMark} onChange={(e) => update(s.id, "classMark", e.target.value)} className="w-20 rounded-md border border-[#1E2A4A]/20 px-2 py-1.5 text-sm" /></td>
+              <td className="py-2 pr-4"><input type="number" min="0" max="60" value={r.examMark} onChange={(e) => update(s.id, "examMark", e.target.value)} className="w-20 rounded-md border border-[#1E2A4A]/20 px-2 py-1.5 text-sm" /></td>
+              <td className="py-2 pr-4 font-medium">{total}</td>
+            </tr>
+          );
+        }}
+      />
+    </Panel>
+  );
+}
+
+function AttendanceRemarksPage({ user, toast }) {
+  const { db, commit } = useDB();
+  const myStream = db.streams.find((s) => s.classTeacherId === user.id);
+  const activeYear = db.academicYears.find((y) => y.isActive);
+  const activeTerm = db.terms.find((t) => t.isActive && t.academicYearId === (activeYear ? activeYear.id : null));
+  const [termId, setTermId] = useState(activeTerm ? activeTerm.id : (db.terms[0] ? db.terms[0].id : ""));
+  const [rows, setRows] = useState({});
+  const students = myStream ? db.users.filter((u) => u.role === "student" && u.streamId === myStream.id) : [];
+
+  useEffect(() => {
+    const init = {};
+    students.forEach((s) => {
+      const att = db.attendance.find((a) => a.studentId === s.id && a.termId === termId);
+      const rem = db.remarks.find((r) => r.studentId === s.id && r.termId === termId);
+      init[s.id] = { present: att ? att.daysPresent : "", total: att ? att.totalDays : "", conduct: rem ? rem.conduct : "", remark: rem ? rem.teacherRemark : "" };
+    });
+    setRows(init);
+  }, [termId, myStream ? myStream.id : null]);
+
+  if (!myStream) return <EmptyState icon="Calendar" title="Not a class teacher" message="Attendance and remarks are entered by each stream's assigned class teacher." />;
+
+  function update(sid, field, val) { setRows((prev) => ({ ...prev, [sid]: { ...prev[sid], [field]: val } })); }
+
+  function save() {
+    commit((prev) => {
+      let attendance = [...prev.attendance];
+      let remarks = [...prev.remarks];
+      students.forEach((s) => {
+        const r = rows[s.id] || {};
+        const present = Number(r.present) || 0, total = Number(r.total) || 0;
+        const exAtt = attendance.find((a) => a.studentId === s.id && a.termId === termId);
+        attendance = exAtt ? attendance.map((a) => (a === exAtt ? { ...a, daysPresent: present, totalDays: total } : a)) : [...attendance, { id: uid("att"), studentId: s.id, termId, daysPresent: present, totalDays: total }];
+        const exRem = remarks.find((x) => x.studentId === s.id && x.termId === termId);
+        remarks = exRem ? remarks.map((x) => (x === exRem ? { ...x, conduct: r.conduct || "", teacherRemark: r.remark || "" } : x)) : [...remarks, { id: uid("rem"), studentId: s.id, termId, conduct: r.conduct || "", teacherRemark: r.remark || "", headteacherRemark: "", promotion: "" }];
+      });
+      return { ...prev, attendance, remarks };
+    });
+    toast("Attendance and remarks saved");
+  }
+
+  return (
+    <Panel title="Attendance & Remarks &mdash; my class" action={<Button size="sm" onClick={save} icon="Check">Save</Button>}>
+      <div className="max-w-xs mb-5">
+        <Field label="Term"><Select value={termId} onChange={(e) => setTermId(e.target.value)}>{db.terms.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</Select></Field>
+      </div>
+      <div className="space-y-4">
+        {students.map((s) => {
+          const r = rows[s.id] || {};
+          return (
+            <div key={s.id} className="border border-[#1E2A4A]/10 rounded-lg p-3.5">
+              <div className="font-medium text-[#1E2A4A] text-sm mb-2.5">{s.name}</div>
+              <div className="grid sm:grid-cols-4 gap-2.5">
+                <Input type="number" placeholder="Days present" value={r.present || ""} onChange={(e) => update(s.id, "present", e.target.value)} />
+                <Input type="number" placeholder="Total days" value={r.total || ""} onChange={(e) => update(s.id, "total", e.target.value)} />
+                <Select value={r.conduct || ""} onChange={(e) => update(s.id, "conduct", e.target.value)}>
+                  <option value="">Conduct &mdash;</option>
+                  <option>Excellent</option><option>Very Good</option><option>Good</option><option>Fair</option><option>Needs Improvement</option>
+                </Select>
+                <Input placeholder="Teacher's remark" value={r.remark || ""} onChange={(e) => update(s.id, "remark", e.target.value)} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Panel>
+  );
+}
+
+function AdminReportsPage({ toast }) {
+  const { db, commit } = useDB();
+  const [streamId, setStreamId] = useState(db.streams[0] ? db.streams[0].id : "");
+  const activeYear = db.academicYears.find((y) => y.isActive);
+  const activeTerm = db.terms.find((t) => t.isActive && t.academicYearId === (activeYear ? activeYear.id : null));
+  const [termId, setTermId] = useState(activeTerm ? activeTerm.id : (db.terms[0] ? db.terms[0].id : ""));
+  const [studentId, setStudentId] = useState("");
+  const students = db.users.filter((u) => u.role === "student" && u.streamId === streamId);
+
+  function onSaveRemark(data) {
+    commit((prev) => {
+      const ex = prev.remarks.find((r) => r.studentId === studentId && r.termId === termId);
+      const remarks = ex ? prev.remarks.map((r) => (r === ex ? { ...r, ...data } : r)) : [...prev.remarks, { id: uid("rem"), studentId, termId, ...data }];
+      return { ...prev, remarks };
+    });
+    toast("Report updated");
+  }
+
+  function onUpdatePhoto(sid, dataUri) {
+    commit((prev) => ({ ...prev, users: prev.users.map((u) => (u.id === sid ? { ...u, photo: dataUri } : u)) }));
+    toast("Photo updated");
+  }
+
+  return (
+    <div className="space-y-5">
+      <Panel title="Select class and student">
+        <div className="grid sm:grid-cols-3 gap-3">
+          <Field label="Stream">
+            <Select value={streamId} onChange={(e) => { setStreamId(e.target.value); setStudentId(""); }}>
+              {db.streams.map((s) => { const c = db.classes.find((x) => x.id === s.classId); return <option key={s.id} value={s.id}>{c ? c.name : ""} {s.name}</option>; })}
+            </Select>
+          </Field>
+          <Field label="Term">
+            <Select value={termId} onChange={(e) => setTermId(e.target.value)}>{db.terms.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</Select>
+          </Field>
+          <Field label="Student">
+            <Select value={studentId} onChange={(e) => setStudentId(e.target.value)}>
+              <option value="">&mdash; Select &mdash;</option>
+              {students.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </Select>
+          </Field>
+        </div>
+      </Panel>
+      {studentId ? (
+        <ReportCardView db={db} studentId={studentId} termId={termId} editable onSaveRemark={onSaveRemark} onUpdatePhoto={onUpdatePhoto} />
+      ) : (
+        <EmptyState icon="ClipboardList" title="Select a student" message="Choose a stream, term and student to view or print their terminal report." />
+      )}
+    </div>
+  );
+}
+
+function StudentReportsPage({ user }) {
+  const { db } = useDB();
+  const terms = db.terms;
+  const activeYear = db.academicYears.find((y) => y.isActive);
+  const activeTerm = db.terms.find((t) => t.isActive && t.academicYearId === (activeYear ? activeYear.id : null));
+  const [termId, setTermId] = useState(activeTerm ? activeTerm.id : (terms[0] ? terms[0].id : ""));
+  return (
+    <div className="space-y-5">
+      <Panel title="Select term">
+        <div className="max-w-xs">
+          <Select value={termId} onChange={(e) => setTermId(e.target.value)}>{terms.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</Select>
+        </div>
+      </Panel>
+      <ReportCardView db={db} studentId={user.id} termId={termId} editable={false} />
+    </div>
+  );
+}
+
+function ParentReportsPage({ user }) {
+  const { db } = useDB();
+  const wards = db.users.filter((u) => u.role === "student" && (user.wardIds || []).includes(u.id));
+  const [studentId, setStudentId] = useState(wards[0] ? wards[0].id : "");
+  const terms = db.terms;
+  const activeYear = db.academicYears.find((y) => y.isActive);
+  const activeTerm = db.terms.find((t) => t.isActive && t.academicYearId === (activeYear ? activeYear.id : null));
+  const [termId, setTermId] = useState(activeTerm ? activeTerm.id : (terms[0] ? terms[0].id : ""));
+  if (!wards.length) return <EmptyState icon="GraduationCap" title="No linked students" message="Contact the school office to link your ward's record to your account." />;
+  return (
+    <div className="space-y-5">
+      <Panel title="Select ward and term">
+        <div className="grid sm:grid-cols-2 gap-3">
+          <Field label="Ward">
+            <Select value={studentId} onChange={(e) => setStudentId(e.target.value)}>{wards.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</Select>
+          </Field>
+          <Field label="Term">
+            <Select value={termId} onChange={(e) => setTermId(e.target.value)}>{terms.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</Select>
+          </Field>
+        </div>
+      </Panel>
+      <ReportCardView db={db} studentId={studentId} termId={termId} editable={false} />
+    </div>
+  );
+}
+
+function ComingSoon({ label }) {
+  return <EmptyState icon="ClipboardList" title={`${label} — coming in the next stage`} message="This module is being built next: gradebook entry, attendance, report card generation, and dashboards with charts." />;
+}
+
+/* ============================================================
+   ROLE DASHBOARDS (basic Stage 1 versions)
+   ============================================================ */
+
+function StatCard({ label, value, sub, icon, tone = "navy" }) {
+  const tones = {
+    navy: "bg-[#1E2A4A] text-white",
+    cream: "bg-white text-[#1E2A4A] border border-[#1E2A4A]/10",
+  };
+  return (
+    <div className={`rounded-xl p-4 ${tones[tone]}`}>
+      <div className="flex items-center justify-between mb-3">
+        <span className={`text-xs font-medium ${tone === "navy" ? "text-white/60" : "text-[#1E2A4A]/50"}`}>{label}</span>
+        <Icon name={icon} size={16} className="text-[#C9922E]" />
+      </div>
+      <div className="font-serif text-2xl">{value}</div>
+      {sub && <div className={`text-xs mt-1 ${tone === "navy" ? "text-white/50" : "text-[#1E2A4A]/45"}`}>{sub}</div>}
+    </div>
+  );
+}
+
+function AdminDashboard({ activeTerm, activeYear }) {
+  const { db } = useDB();
+  const studentCount = db.users.filter((u) => u.role === "student").length;
+  const teacherCount = db.users.filter((u) => u.role === "teacher").length;
+  const classCount = db.classes.length;
+  const streamCount = db.streams.length;
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard label="Total Students" value={studentCount} icon="GraduationCap" tone="navy" />
+        <StatCard label="Teaching Staff" value={teacherCount} icon="UserCog" tone="cream" />
+        <StatCard label="Classes" value={classCount} icon="Layers" tone="cream" />
+        <StatCard label="Streams" value={streamCount} icon="School" tone="cream" />
+      </div>
+      <Panel title="Welcome back">
+        <p className="text-sm text-[#1E2A4A]/60 leading-relaxed">
+          You're managing <strong className="text-[#1E2A4A]">{activeYear?.label}</strong>, currently in <strong className="text-[#1E2A4A]">{activeTerm?.label}</strong>.
+          Use <em>Academic Setup</em> to manage years, terms, classes and subjects. Performance dashboards with charts, gradebook entry, and the report card generator arrive in the next build stage.
+        </p>
+      </Panel>
+    </div>
+  );
+}
+
+function GenericDashboard({ user }) {
+  return (
+    <Panel title={`Welcome, ${user.name.split(" ")[0]}`}>
+      <p className="text-sm text-[#1E2A4A]/60">
+        Your {ROLE_LABEL[user.role].toLowerCase()} dashboard is set up. Gradebook, attendance, and report-card features are coming in the next build stage.
+      </p>
+    </Panel>
+  );
+}
+
+/* ============================================================
+   ROOT APP
+   ============================================================ */
+
+function App() {
+  const { db, ready, commit, cloudStatus } = useDatabase();
+  const [user, setUser] = useState(null);
+  const [page, setPage] = useState("dashboard");
+  const [toastMsg, setToastMsg] = useState(null);
+
+  const showToast = useCallback((msg) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 2200);
+  }, []);
+
+  useEffect(() => { setPage("dashboard"); }, [user?.id]);
+
+  if (!ready) {
+    return (
+      <div className="min-h-screen bg-[#1E2A4A] flex items-center justify-center">
+        <div className="text-white/50 text-sm">Loading…</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginScreen onLogin={setUser} users={db.users} school={db.school} cloudStatus={cloudStatus} onRegister={(u) => { commit((prev) => ({ ...prev, users: [...prev.users, u] })); setUser(u); }} />;
+  }
+
+  const activeYear = db.academicYears.find((y) => y.isActive);
+  const activeTerm = db.terms.find((t) => t.isActive && t.academicYearId === activeYear?.id);
+
+  let content = null;
+  if (user.role === "admin") {
+    if (page === "dashboard") content = <AdminDashboard activeTerm={activeTerm} activeYear={activeYear} />;
+    else if (page === "academic") content = <AcademicSetupPage toast={showToast} />;
+    else if (page === "staff") content = <StaffPage toast={showToast} />;
+    else if (page === "students") content = <StudentsPage toast={showToast} />;
+    else if (page === "results") content = <AdminResultsPage toast={showToast} />;
+    else if (page === "reports") content = <AdminReportsPage toast={showToast} />;
+    else if (page === "grading") content = <GradingScalePage toast={showToast} />;
+    else if (page === "settings") content = <SchoolSettingsPage toast={showToast} />;
+  } else if (user.role === "teacher") {
+    if (page === "dashboard") content = <GenericDashboard user={user} />;
+    else if (page === "gradebook") content = <GradebookPage user={user} toast={showToast} />;
+    else if (page === "attendance") content = <AttendanceRemarksPage user={user} toast={showToast} />;
+    else if (page === "students") content = <StudentsPage toast={showToast} scopedStreamId={db.streams.find((s) => s.classTeacherId === user.id)?.id} readOnly />;
+    else content = <ComingSoon label={(NAV_BY_ROLE.teacher.find((n) => n.id === page) || {}).label} />;
+  } else if (user.role === "student") {
+    if (page === "dashboard") content = <GenericDashboard user={user} />;
+    else if (page === "reports") content = <StudentReportsPage user={user} />;
+    else content = <ComingSoon label={(NAV_BY_ROLE[user.role].find((n) => n.id === page) || {}).label} />;
+  } else if (user.role === "parent") {
+    if (page === "dashboard") content = <GenericDashboard user={user} />;
+    else if (page === "reports") content = <ParentReportsPage user={user} />;
+    else content = <ComingSoon label={(NAV_BY_ROLE[user.role].find((n) => n.id === page) || {}).label} />;
+  } else {
+    if (page === "dashboard") content = <GenericDashboard user={user} />;
+    else content = <ComingSoon label={(NAV_BY_ROLE[user.role].find((n) => n.id === page) || {}).label} />;
+  }
+
+  return (
+    <DBContext.Provider value={{ db, commit }}>
+      <Shell user={user} page={page} setPage={setPage} onLogout={() => setUser(null)} activeTerm={activeTerm} activeYear={activeYear} school={db.school} cloudStatus={cloudStatus}>
+        {content}
+      </Shell>
+      <Toast toast={toastMsg} />
+      <style>{`
+        @keyframes fadein { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+        .font-serif { font-family: 'Source Serif 4', ui-serif, Georgia, serif; }
+      `}</style>
+    </DBContext.Provider>
+  );
+}
+
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js").catch(() => {
+        // Service worker registration can fail silently (e.g. unsupported
+        // browser, or file opened directly with file:// instead of served
+        // over http/https) — the app still works online either way.
+      });
+    });
+  }
+</script>
+</body>
+</html>
