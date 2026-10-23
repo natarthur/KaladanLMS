@@ -170,28 +170,87 @@ const emptyDB = () => ({
 
 function migrateDB(d) {
   const seed = emptyDB();
+
   if (!d.meta || d.meta.v < 3) {
-    d.subjects = seed.subjects;
-    d.scores = (d.scores || []).map((x) => (x.marks !== undefined ? x : { id: x.id, studentId: x.studentId, subjectId: x.subjectId, termId: x.termId, marks: (x.caScore || 0) + (x.examScore || 0) }));
+    d.subjects = d.subjects || seed.subjects;
+    d.scores = (d.scores || []).map((x) =>
+      x.marks !== undefined
+        ? x
+        : {
+            id: x.id,
+            studentId: x.studentId,
+            subjectId: x.subjectId,
+            termId: x.termId,
+            marks: (x.caScore || 0) + (x.examScore || 0)
+          }
+    );
+
     d.school = { ...seed.school, ...d.school };
-    if (!d.school.logo || /Sunrise/.test(d.school.name || "")) { d.school.logo = seed.school.logo; d.school.name = seed.school.name; }
-    if (/Accra/.test(d.school.address || "")) d.school.address = seed.school.address;
-    if (!d.school.staffCode) d.school.staffCode = seed.school.staffCode;
+
+    if (!d.school.logo || /Sunrise/.test(d.school.name || "")) {
+      d.school.logo = seed.school.logo;
+      d.school.name = seed.school.name;
+    }
+
+    if (/Accra/.test(d.school.address || "")) {
+      d.school.address = seed.school.address;
+    }
+
+    if (!d.school.staffCode) {
+      d.school.staffCode = seed.school.staffCode;
+    }
   }
+
   if (!d.meta || d.meta.v < 4) {
-    // Class mark / exam mark breakdown replaces the single "marks" field.
     d.scores = (d.scores || []).map((x) => {
-      if (x.classMark !== undefined || x.examMark !== undefined) return x;
-      return { id: x.id, studentId: x.studentId, subjectId: x.subjectId, termId: x.termId, classMark: 0, examMark: x.marks || 0 };
+      if (x.classMark !== undefined || x.examMark !== undefined) {
+        return x;
+      }
+
+      return {
+        id: x.id,
+        studentId: x.studentId,
+        subjectId: x.subjectId,
+        termId: x.termId,
+        classMark: 0,
+        examMark: x.marks || 0
+      };
     });
+
     d.users = (d.users || []).map((u) => {
       const extra = {};
-      if ((u.role === "teacher" || u.role === "accountant" || u.role === "admin") && u.dob === undefined) extra.dob = "";
-      if (u.role === "student" && u.guardianPhone === undefined) extra.guardianPhone = "";
-      return Object.keys(extra).length ? { ...u, ...extra } : u;
+
+      if (
+        (u.role === "teacher" ||
+          u.role === "accountant" ||
+          u.role === "admin") &&
+        u.dob === undefined
+      ) {
+        extra.dob = "";
+      }
+
+      if (u.role === "student" && u.guardianPhone === undefined) {
+        extra.guardianPhone = "";
+      }
+
+      return Object.keys(extra).length
+        ? { ...u, ...extra }
+        : u;
     });
   }
-  d.meta = { ...(d.meta || {}), v: 4 };
+
+  // Prepare assessment and result-approval records.
+  // Existing records are preserved.
+  d.assessmentActivities = Array.isArray(d.assessmentActivities)
+    ? d.assessmentActivities
+    : [];
+
+  d.resultSubmissions = Array.isArray(d.resultSubmissions)
+    ? d.resultSubmissions
+    : [];
+
+  d.meta = { ...(d.meta || {}), v: 5 };
+
   return d;
 }
 
