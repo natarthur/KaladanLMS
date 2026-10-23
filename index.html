@@ -2290,94 +2290,711 @@ function AdminResultsPage({ toast }) {
 
 function GradebookPage({ user, toast }) {
   const { db, commit } = useDB();
-  const myAssignments = db.subjectAssignments.filter((a) => a.teacherId === user.id);
+
+  const myAssignments = db.subjectAssignments.filter(
+    (a) => a.teacherId === user.id
+  );
+
   const streamIds = [...new Set(myAssignments.map((a) => a.streamId))];
+
   const [streamId, setStreamId] = useState(streamIds[0] || "");
-  const subjectsForStream = myAssignments.filter((a) => a.streamId === streamId).map((a) => a.subjectId);
+  const subjectsForStream = myAssignments
+    .filter((a) => a.streamId === streamId)
+    .map((a) => a.subjectId);
+
   const [subjectId, setSubjectId] = useState(subjectsForStream[0] || "");
+
   const activeYear = db.academicYears.find((y) => y.isActive);
-  const activeTerm = db.terms.find((t) => t.isActive && t.academicYearId === (activeYear ? activeYear.id : null));
-  const [termId, setTermId] = useState(activeTerm ? activeTerm.id : (db.terms[0] ? db.terms[0].id : ""));
-  const [rows, setRows] = useState({});
-  const students = db.users.filter((u) => u.role === "student" && u.streamId === streamId);
+  const activeTerm = db.terms.find(
+    (t) => t.isActive && t.academicYearId === activeYear?.id
+  );
+
+  const [termId, setTermId] = useState(
+    activeTerm ? activeTerm.id : db.terms[0]?.id || ""
+  );
+
+  const [title, setTitle] = useState("");
+  const [activityType, setActivityType] = useState("Class Test");
+  const [week, setWeek] = useState("1");
+  const [maxMarks, setMaxMarks] = useState("10");
+  const [examMax, setExamMax] = useState("100");
+  const [examMarks, setExamMarks] = useState({});
+  const [examTouched, setExamTouched] = useState({});
+  const [busy, setBusy] = useState(false);
+
+  const students = db.users.filter(
+    (u) => u.role === "student" && u.streamId === streamId
+  );
+
+  const activities = (db.assessmentActivities || []).filter(
+    (a) =>
+      a.streamId === streamId &&
+      a.subjectId === subjectId &&
+      a.termId === termId
+  );
+
+  const submission = (db.resultSubmissions || []).find(
+    (x) =>
+      x.streamId === streamId &&
+      x.subjectId === subjectId &&
+      x.termId === termId
+  );
+
+  const locked = submission?.status === "approved";
+  const submitted = submission?.status === "submitted";
 
   useEffect(() => {
     const init = {};
     students.forEach((s) => {
-      const sc = db.scores.find((x) => x.studentId === s.id && x.subjectId === subjectId && x.termId === termId);
-      init[s.id] = { classMark: sc ? sc.classMark : "", examMark: sc ? sc.examMark : "" };
+      init[s.id] = "";
     });
-    setRows(init);
+
+    setExamMarks(init);
+    setExamTouched({});
   }, [streamId, subjectId, termId]);
 
-  if (!streamIds.length) return <EmptyState icon="BookOpen" title="No subjects assigned" message="Ask an administrator to assign you to a subject and stream." />;
+  useEffect(() => {
+    if (!submission) return;
 
-  function update(sid, field, val) {
-    const cap = field === "classMark" ? 40 : 60;
-    const num = val === "" ? "" : Math.max(0, Math.min(cap, Number(val)));
-    setRows((prev) => ({ ...prev, [sid]: { ...prev[sid], [field]: num } }));
+    setExamMax(String(submission.examMax || 100));
+    setExamMarks(submission.examMarks || {});
+    setExamTouched({});
+  }, [submission?.id, submission?.updatedAt]);
+
+  if (!streamIds.length) {
+    return (
+      <EmptyState
+        icon="BookOpen"
+        title="No subjects assigned"
+        message="Ask the administrator to assign you to a subject and stream."
+      />
+    );
   }
 
-  function save() {
-    commit((prev) => {
-      let scores = [...prev.scores];
-      students.forEach((s) => {
-        const classMark = rows[s.id] && rows[s.id].classMark !== "" ? Number(rows[s.id].classMark) : 0;
-        const examMark = rows[s.id] && rows[s.id].examMark !== "" ? Number(rows[s.id].examMark) : 0;
-        const existing = scores.find((x) => x.studentId === s.id && x.subjectId === subjectId && x.termId === termId);
-        if (existing) scores = scores.map((x) => (x === existing ? { ...x, classMark, examMark } : x));
-        else scores = [...scores, { id: uid("score"), studentId: s.id, subjectId, termId, classMark, examMark }];
-      });
-      return { ...prev, scores };
+  function updateActivityMark(activityId, studentId, value) {
+    const activity = activities.find((a) => a.id === activityId);
+    if (!activity || locked || submitted) return;
+
+    const number = value === "" ? "" : Number(value);
+    if (
+      number !== "" &&
+      (!Number.isFinite(number) || number < 0 || number > Number(activity.maxMarks))
+    ) {
+      toast(`Enter a mark between 0 and ${activity.maxMarks}`);
+      return;
+    }
+
+    commit((prev) => ({
+      ...prev,
+      assessmentActivities: (prev.assessmentActivities || []).map((a) =>
+        a.id === activityId
+          ? {
+              ...a,
+              marks: {
+                ...(a.marks || {}),
+                [studentId]: value === "" ? "" : number
+              },
+              updatedAt: Date.now()
+            }
+          : a
+      )
+    }));
+  }
+
+  function createActivity() {
+    const cleanTitle = title.trim();
+    const maximum = Number(maxMarks);
+    const selectedWeek = Number(week);
+
+    if (!cleanTitle) {
+      toast("Enter an assessment title");
+      return;
+    }
+
+    if (!Number.isFinite(maximum) || maximum <= 0) {
+      toast("Maximum marks must be greater than zero");
+      return;
+    }
+
+    if (
+      !Number.isInteger(selectedWeek) ||
+      selectedWeek < 1 ||
+      selectedWeek > 15
+    ) {
+      toast("Enter a week between 1 and 15");
+      return;
+    }
+
+    if (locked || submitted) {
+      toast("These results are locked for editing");
+      return;
+    }
+
+    const activity = {
+      id: uid("assessment"),
+      streamId,
+      subjectId,
+      termId,
+      title: cleanTitle,
+      type: activityType,
+      week: selectedWeek,
+      maxMarks: maximum,
+      marks: {},
+      createdBy: user.id,
+      createdAt: Date.now()
+    };
+
+    commit((prev) => ({
+      ...prev,
+      assessmentActivities: [
+        ...(prev.assessmentActivities || []),
+        activity
+      ]
+    }));
+
+    setTitle("");
+    toast("Assessment created");
+  }
+
+  function calculateCA(studentId) {
+    let earned = 0;
+    let possible = 0;
+    let entered = 0;
+
+    activities.forEach((activity) => {
+      const mark = activity.marks?.[studentId];
+
+      if (mark !== "" && mark !== undefined && mark !== null) {
+        earned += Number(mark);
+        possible += Number(activity.maxMarks);
+        entered++;
+      }
     });
-    toast("Marks saved");
+
+    return {
+      value: possible > 0 ? (earned / possible) * 40 : null,
+      earned,
+      possible,
+      entered,
+      totalActivities: activities.length
+    };
+  }
+
+  function examValue(studentId) {
+    const value = examMarks[studentId];
+    const maximum = Number(examMax);
+
+    if (
+      value === "" ||
+      value === undefined ||
+      value === null ||
+      !Number.isFinite(maximum) ||
+      maximum <= 0
+    ) {
+      return null;
+    }
+
+    return (Number(value) / maximum) * 60;
+  }
+
+  function updateExam(studentId, value) {
+    if (locked || submitted) return;
+
+    const maximum = Number(examMax);
+    const number = value === "" ? "" : Number(value);
+
+    if (
+      number !== "" &&
+      (!Number.isFinite(number) || number < 0 || number > maximum)
+    ) {
+      toast(`Enter a mark between 0 and ${maximum}`);
+      return;
+    }
+
+    setExamMarks((prev) => ({ ...prev, [studentId]: value }));
+    setExamTouched((prev) => ({ ...prev, [studentId]: true }));
+  }
+
+  function saveDraft() {
+    if (locked || submitted) {
+      toast("These results cannot be edited in their current status");
+      return;
+    }
+
+    const maximum = Number(examMax);
+
+    if (!Number.isFinite(maximum) || maximum <= 0) {
+      toast("Enter a valid examination maximum");
+      return;
+    }
+
+    for (const student of students) {
+      const value = examMarks[student.id];
+
+      if (
+        value !== "" &&
+        value !== undefined &&
+        value !== null &&
+        (Number(value) < 0 || Number(value) > maximum)
+      ) {
+        toast(`Check the examination mark for ${student.name}`);
+        return;
+      }
+    }
+
+    const now = Date.now();
+
+    commit((prev) => {
+      const old = (prev.resultSubmissions || []).find(
+        (x) =>
+          x.streamId === streamId &&
+          x.subjectId === subjectId &&
+          x.termId === termId
+      );
+
+      const record = {
+        ...(old || {}),
+        id: old?.id || uid("submission"),
+        streamId,
+        subjectId,
+        termId,
+        status: "draft",
+        examMax: maximum,
+        examMarks,
+        savedBy: user.id,
+        updatedAt: now
+      };
+
+      return {
+        ...prev,
+        resultSubmissions: old
+          ? prev.resultSubmissions.map((x) =>
+              x.id === old.id ? record : x
+            )
+          : [...(prev.resultSubmissions || []), record]
+      };
+    });
+
+    toast("Draft saved");
+  }
+
+  function submitResults() {
+    if (locked || submitted) {
+      toast("These results have already been submitted or approved");
+      return;
+    }
+
+    if (!students.length) {
+      toast("There are no students in this stream");
+      return;
+    }
+
+    if (!activities.length) {
+      toast("Create at least one assessment first");
+      return;
+    }
+
+    const maximum = Number(examMax);
+
+    if (!Number.isFinite(maximum) || maximum <= 0) {
+      toast("Enter a valid examination maximum");
+      return;
+    }
+
+    for (const activity of activities) {
+      for (const student of students) {
+        const mark = activity.marks?.[student.id];
+
+        if (
+          mark === "" ||
+          mark === undefined ||
+          mark === null
+        ) {
+          toast(
+            `Enter all marks for "${activity.title}" before submission`
+          );
+          return;
+        }
+      }
+    }
+
+    for (const student of students) {
+      const mark = examMarks[student.id];
+
+      if (
+        mark === "" ||
+        mark === undefined ||
+        mark === null ||
+        !Number.isFinite(Number(mark)) ||
+        Number(mark) < 0 ||
+        Number(mark) > maximum
+      ) {
+        toast(
+          `Enter a valid examination mark for ${student.name}`
+        );
+        return;
+      }
+    }
+
+    const now = Date.now();
+
+    commit((prev) => {
+      const old = (prev.resultSubmissions || []).find(
+        (x) =>
+          x.streamId === streamId &&
+          x.subjectId === subjectId &&
+          x.termId === termId
+      );
+
+      const record = {
+        ...(old || {}),
+        id: old?.id || uid("submission"),
+        streamId,
+        subjectId,
+        termId,
+        status: "submitted",
+        examMax: maximum,
+        examMarks,
+        submittedBy: user.id,
+        submittedAt: now,
+        updatedAt: now
+      };
+
+      return {
+        ...prev,
+        resultSubmissions: old
+          ? prev.resultSubmissions.map((x) =>
+              x.id === old.id ? record : x
+            )
+          : [...(prev.resultSubmissions || []), record]
+      };
+    });
+
+    toast("Results submitted for headteacher review");
   }
 
   return (
-    <Panel title="Score Entry" action={<Button size="sm" onClick={save} icon="Check">Save Marks</Button>}>
-      <div className="grid sm:grid-cols-3 gap-3 mb-5">
-        <Field label="Stream">
-          <Select value={streamId} onChange={(e) => {
-            const newStreamId = e.target.value;
-            setStreamId(newStreamId);
-            const subs = myAssignments.filter((a) => a.streamId === newStreamId).map((a) => a.subjectId);
-            setSubjectId(subs[0] || "");
-          }}>
-            {streamIds.map((sid) => { const s = db.streams.find((x) => x.id === sid); const c = db.classes.find((x) => x.id === (s ? s.classId : null)); return <option key={sid} value={sid}>{c ? c.name : ""} {s ? s.name : ""}</option>; })}
-          </Select>
-        </Field>
-        <Field label="Subject">
-          <Select value={subjectId} onChange={(e) => setSubjectId(e.target.value)}>
-            {subjectsForStream.map((sid) => { const s = db.subjects.find((x) => x.id === sid); return <option key={sid} value={sid}>{s ? s.name : ""}</option>; })}
-          </Select>
-        </Field>
-        <Field label="Term">
-          <Select value={termId} onChange={(e) => setTermId(e.target.value)}>
-            {db.terms.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-          </Select>
-        </Field>
-      </div>
-      <Table
-        columns={["Student", "Class Mark (/40)", "Exam Mark (/60)", "Total"]}
-        rows={students}
-        empty={<EmptyState icon="GraduationCap" title="No students" message="This stream has no enrolled students." />}
-        renderRow={(s) => {
-          const r = rows[s.id] || { classMark: "", examMark: "" };
-          const total = (Number(r.classMark) || 0) + (Number(r.examMark) || 0);
-          return (
-            <tr key={s.id} className="border-b border-[#1E2A4A]/6 last:border-0">
-              <td className="py-2 pr-4 font-medium text-[#1E2A4A]">{s.name}</td>
-              <td className="py-2 pr-4"><input type="number" min="0" max="40" value={r.classMark} onChange={(e) => update(s.id, "classMark", e.target.value)} className="w-20 rounded-md border border-[#1E2A4A]/20 px-2 py-1.5 text-sm" /></td>
-              <td className="py-2 pr-4"><input type="number" min="0" max="60" value={r.examMark} onChange={(e) => update(s.id, "examMark", e.target.value)} className="w-20 rounded-md border border-[#1E2A4A]/20 px-2 py-1.5 text-sm" /></td>
-              <td className="py-2 pr-4 font-medium">{total}</td>
-            </tr>
-          );
-        }}
-      />
-    </Panel>
+    <div className="space-y-5">
+      <Panel title="Teacher Assessment & Results">
+        <div className="grid sm:grid-cols-3 gap-3">
+          <Field label="Stream">
+            <Select
+              value={streamId}
+              onChange={(e) => {
+                const nextStream = e.target.value;
+                setStreamId(nextStream);
+                const nextSubjects = myAssignments
+                  .filter((a) => a.streamId === nextStream)
+                  .map((a) => a.subjectId);
+                setSubjectId(nextSubjects[0] || "");
+              }}
+            >
+              {streamIds.map((sid) => {
+                const stream = db.streams.find((x) => x.id === sid);
+                const cls = db.classes.find(
+                  (x) => x.id === stream?.classId
+                );
+
+                return (
+                  <option key={sid} value={sid}>
+                    {cls?.name || ""} {stream?.name || ""}
+                  </option>
+                );
+              })}
+            </Select>
+          </Field>
+
+          <Field label="Subject">
+            <Select
+              value={subjectId}
+              onChange={(e) => setSubjectId(e.target.value)}
+            >
+              {subjectsForStream.map((sid) => {
+                const subject = db.subjects.find((x) => x.id === sid);
+                return (
+                  <option key={sid} value={sid}>
+                    {subject?.name || sid}
+                  </option>
+                );
+              })}
+            </Select>
+          </Field>
+
+          <Field label="Term">
+            <Select
+              value={termId}
+              onChange={(e) => setTermId(e.target.value)}
+            >
+              {db.terms.map((term) => (
+                <option key={term.id} value={term.id}>
+                  {term.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+
+        <div className="mt-4 rounded-lg bg-[#1E2A4A]/5 p-3 text-sm">
+          <div>
+            <strong>CA:</strong> 40 marks &nbsp;|&nbsp;
+            <strong>Examination:</strong> 60 marks &nbsp;|&nbsp;
+            <strong>Total:</strong> 100 marks
+          </div>
+
+          <p className="mt-1 text-[#1E2A4A]/60">
+            CA is calculated from the pooled marks earned across the
+            assessments recorded for this subject and term.
+          </p>
+
+          <p className="mt-2 font-medium">
+            Status:{" "}
+            <span>
+              {locked
+                ? "Approved"
+                : submitted
+                ? "Submitted for review"
+                : submission?.status === "draft"
+                ? "Draft saved"
+                : "Work in progress"}
+            </span>
+          </p>
+        </div>
+      </Panel>
+
+      <Panel title="Create Assessment">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <Field label="Assessment title">
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Fractions Exercise"
+              className="w-full rounded-md border border-[#1E2A4A]/20 px-3 py-2 text-sm"
+              disabled={locked || submitted}
+            />
+          </Field>
+
+          <Field label="Assessment type">
+            <Select
+              value={activityType}
+              onChange={(e) => setActivityType(e.target.value)}
+              disabled={locked || submitted}
+            >
+              <option>Exercise</option>
+              <option>Homework</option>
+              <option>Class Test</option>
+              <option>Project</option>
+              <option>Practical</option>
+              <option>Other</option>
+            </Select>
+          </Field>
+
+          <Field label="Week (1–15)">
+            <input
+              type="number"
+              min="1"
+              max="15"
+              value={week}
+              onChange={(e) => setWeek(e.target.value)}
+              className="w-full rounded-md border border-[#1E2A4A]/20 px-3 py-2 text-sm"
+              disabled={locked || submitted}
+            />
+          </Field>
+
+          <Field label="Maximum marks">
+            <input
+              type="number"
+              min="1"
+              value={maxMarks}
+              onChange={(e) => setMaxMarks(e.target.value)}
+              className="w-full rounded-md border border-[#1E2A4A]/20 px-3 py-2 text-sm"
+              disabled={locked || submitted}
+            />
+          </Field>
+        </div>
+
+        <div className="mt-4">
+          <Button
+            onClick={createActivity}
+            icon="Plus"
+            disabled={locked || submitted}
+          >
+            Add Assessment
+          </Button>
+        </div>
+      </Panel>
+
+      {activities.map((activity) => (
+        <Panel
+          key={activity.id}
+          title={`${activity.title} — Week ${activity.week}`}
+        >
+          <p className="mb-3 text-xs text-[#1E2A4A]/60">
+            {activity.type} · Maximum: {activity.maxMarks} marks
+          </p>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left">
+                  <th className="py-2 pr-3">Student</th>
+                  <th className="py-2 pr-3">Mark</th>
+                  <th className="py-2">Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {students.map((student) => {
+                  const mark = activity.marks?.[student.id];
+                  const hasMark =
+                    mark !== "" &&
+                    mark !== undefined &&
+                    mark !== null;
+
+                  return (
+                    <tr
+                      key={student.id}
+                      className="border-b border-[#1E2A4A]/10"
+                    >
+                      <td className="py-2 pr-3">{student.name}</td>
+
+                      <td className="py-2 pr-3">
+                        <input
+                          type="number"
+                          min="0"
+                          max={activity.maxMarks}
+                          value={hasMark ? mark : ""}
+                          disabled={locked || submitted}
+                          onChange={(e) =>
+                            updateActivityMark(
+                              activity.id,
+                              student.id,
+                              e.target.value
+                            )
+                          }
+                          className="w-24 rounded-md border border-[#1E2A4A]/20 px-2 py-1.5"
+                        />
+                      </td>
+
+                      <td className="py-2">
+                        {hasMark ? "Entered" : "Not entered"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      ))}
+
+      <Panel title="Examination Marks">
+        <div className="mb-4 max-w-xs">
+          <Field label="Examination maximum marks">
+            <input
+              type="number"
+              min="1"
+              value={examMax}
+              disabled={locked || submitted}
+              onChange={(e) => setExamMax(e.target.value)}
+              className="w-full rounded-md border border-[#1E2A4A]/20 px-3 py-2 text-sm"
+            />
+          </Field>
+          <p className="mt-1 text-xs text-[#1E2A4A]/60">
+            Scores are converted automatically to a mark out of 60.
+          </p>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-left">
+                <th className="py-2 pr-3">Student</th>
+                <th className="py-2 pr-3">Exam score</th>
+                <th className="py-2 pr-3">Exam /60</th>
+                <th className="py-2 pr-3">CA /40</th>
+                <th className="py-2">Total /100</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {students.map((student) => {
+                const ca = calculateCA(student.id);
+                const exam = examValue(student.id);
+                const total =
+                  ca.value !== null && exam !== null
+                    ? ca.value + exam
+                    : null;
+
+                return (
+                  <tr
+                    key={student.id}
+                    className="border-b border-[#1E2A4A]/10"
+                  >
+                    <td className="py-2 pr-3 font-medium">
+                      {student.name}
+                    </td>
+
+                    <td className="py-2 pr-3">
+                      <input
+                        type="number"
+                        min="0"
+                        max={Number(examMax)}
+                        value={examMarks[student.id] ?? ""}
+                        disabled={locked || submitted}
+                        onChange={(e) =>
+                          updateExam(student.id, e.target.value)
+                        }
+                        className="w-24 rounded-md border border-[#1E2A4A]/20 px-2 py-1.5"
+                      />
+                    </td>
+
+                    <td className="py-2 pr-3">
+                      {exam === null ? "—" : exam.toFixed(2)}
+                    </td>
+
+                    <td className="py-2 pr-3">
+                      {ca.value === null ? "—" : ca.value.toFixed(2)}
+                    </td>
+
+                    <td className="py-2 font-semibold">
+                      {total === null ? "Incomplete" : total.toFixed(2)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Button
+            onClick={saveDraft}
+            icon="Save"
+            disabled={locked || submitted}
+          >
+            Save Draft
+          </Button>
+
+          <Button
+            onClick={submitResults}
+            icon="Check"
+            disabled={locked || submitted}
+          >
+            Submit for Approval
+          </Button>
+        </div>
+
+        {(locked || submitted) && (
+          <p className="mt-3 text-sm text-[#1E2A4A]/70">
+            {locked
+              ? "These results have been approved and are locked."
+              : "These results have been submitted and are locked while awaiting review."}
+          </p>
+        )}
+      </Panel>
+    </div>
   );
 }
-
 function AttendanceRemarksPage({ user, toast }) {
   const { db, commit } = useDB();
   const myStream = db.streams.find((s) => s.classTeacherId === user.id);
