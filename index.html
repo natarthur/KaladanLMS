@@ -2743,6 +2743,7 @@ function GradebookPage({ user, toast }) {
       )
     : [...(prev.resultSubmissions || []), record]
 };
+    });      
 
     toast("Results submitted for headteacher review");
   }
