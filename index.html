@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#17324d">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<title>Kaladan E.P JHS B — LMS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f6f7f9;color:#172033;font-family:Inter,system-ui,sans-serif}
+button,input,select,textarea{font:inherit}.card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 3px 14px #0000000b}
+.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}.primary{background:#17324d;color:#fff}.secondary{background:#eef2f6;color:#17324d}.danger{background:#fee2e2;color:#991b1b}.field{width:100%;border:1px solid #d7dce2;border-radius:10px;padding:10px 12px;background:#fff}.navbtn{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:0;border-radius:10px;background:transparent;text-align:left;cursor:pointer}.navbtn.active{background:#e7eef5;color:#17324d;font-weight:800}.tablewrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:760px}.table th,.table td{padding:10px;border-bottom:1px solid #edf0f3;text-align:left;vertical-align:top}.table th{background:#f8fafc;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#667085}.score{width:86px}.pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2f6;font-size:12px;font-weight:700}.toast{position:fixed;right:16px;bottom:16px;z-index:1000}.mobilebar{display:none}@media(max-width:850px){.sidebar{display:none}.mobilebar{display:flex}.layout{display:block!important}.main{padding:14px!important}.grid2{grid-template-columns:1fr!important}.grid3{grid-template-columns:1fr!important}.desktop-only{display:none}.mobile-nav{display:block!important}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const FIREBASE_CONFIG={
+ apiKey:"AIzaSyCvYQjT309pqFWsMwxlVbRuQf5Etar-W2w",
+ authDomain:"kaladan-lms.firebaseapp.com",
+ projectId:"kaladan-lms",
+ storageBucket:"kaladan-lms.firebasestorage.app",
+ messagingSenderId:"64708940391",
+ appId:"1:64708940391:web:607bcc9f0ade01dbe67ac2"
+};
+const CLOUD_DOC="database_fresh_v1", CLOUD_COLLECTION="kaladan_jhs_lms";
+let cloud=null;
+try{firebase.initializeApp(FIREBASE_CONFIG);cloud=firebase.firestore()}catch(e){console.error(e)}
+const LOCAL_KEY="kaladan_lms_fresh_v1";
+const subjects=[
+["ENG","English Language"],["MATH","Mathematics"],["SCI","Integrated Science"],["SOC","Social Studies"],
+["CT","Career Technology"],["CAD","Creative Arts and Design"],["DAG","Ghanaian Language-Dagbani"],["ICT","Computing"],["RME","Religious and Moral Education"]
+];
+const TEACHER_DEFAULTS=[{"id":"teacher1","name":"Ali Amidu","classId":"","subjectId":"CT","email":"ali.amidu@kaladan.local","phone":""},{"id":"teacher2","name":"Adongo Robert","classId":"","subjectId":"SCI","email":"adongo.robert@kaladan.local","phone":""},{"id":"teacher3","name":"Issahaku Ayisha","classId":"","subjectId":"SOC","email":"issahaku.ayisha@kaladan.local","phone":""},{"id":"teacher4","name":"Abdul - Samed Hamdiya","classId":"","subjectId":"SCI","email":"abdul.samed.hamdiya@kaladan.local","phone":""},{"id":"teacher5","name":"Mohammed Abubakari","classId":"","subjectId":"ICT","email":"mohammed.abubakari@kaladan.local","phone":""},{"id":"teacher6","name":"Yussif Issahaku","classId":"","subjectId":"DAG","email":"yussif.issahaku@kaladan.local","phone":""},{"id":"teacher7","name":"Baba Mohammed Sadat","classId":"","subjectId":"SOC","email":"baba.mohammed.sadat@kaladan.local","phone":""},{"id":"teacher8","name":"Wali Mohammed Hizibillai","classId":"","subjectId":"MATH","email":"wali.mohammed.hizibillai@kaladan.local","phone":""},{"id":"teacher9","name":"Abdul - Manan Mohammed","classId":"","subjectId":"SCI","email":"abdul.manan.mohammed@kaladan.local","phone":""},{"id":"teacher10","name":"Seidu Huzeima","classId":"","subjectId":"CT","email":"seidu.huzeima@kaladan.local","phone":""},{"id":"teacher11","name":"Umar Zulfawu Gbambiegu","classId":"","subjectId":"RME","email":"umar.zulfawu.gbambiegu@kaladan.local","phone":""},{"id":"teacher12","name":"Alangea Claudette","classId":"","subjectId":"ENG","email":"alangea.claudette@kaladan.local","phone":""},{"id":"teacher13","name":"Azabugu Kate Anyanbilla","classId":"","subjectId":"SOC","email":"azabugu.kate.anyanbilla@kaladan.local","phone":""},{"id":"teacher14","name":"Alidu Tahiru Rajab","classId":"","subjectId":"CAD","email":"alidu.tahiru.rajab@kaladan.local","phone":""},{"id":"teacher15","name":"Yakubu Ismail","classId":"","subjectId":"ICT","email":"yakubu.ismail@kaladan.local","phone":""},{"id":"teacher16","name":"Umar Abdul Jalil","classId":"","subjectId":"CT","email":"umar.abdul.jalil@kaladan.local","phone":""},{"id":"teacher17","name":"Abukari Ayisha","classId":"","subjectId":"CAD","email":"abukari.ayisha@kaladan.local","phone":""},{"id":"teacher18","name":"Ibrahim Fantana Hilda","classId":"","subjectId":"RME","email":"ibrahim.fantana.hilda@kaladan.local","phone":""},{"id":"teacher19","name":"Janet Nsoh","classId":"","subjectId":"ENG","email":"janet.nsoh@kaladan.local","phone":""}];
+const TEACHER_USERS=[{"id":"teacher1","role":"teacher","name":"Ali Amidu","email":"ali.amidu@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher1"},{"id":"teacher2","role":"teacher","name":"Adongo Robert","email":"adongo.robert@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher2"},{"id":"teacher3","role":"teacher","name":"Issahaku Ayisha","email":"issahaku.ayisha@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher3"},{"id":"teacher4","role":"teacher","name":"Abdul - Samed Hamdiya","email":"abdul.samed.hamdiya@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher4"},{"id":"teacher5","role":"teacher","name":"Mohammed Abubakari","email":"mohammed.abubakari@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher5"},{"id":"teacher6","role":"teacher","name":"Yussif Issahaku","email":"yussif.issahaku@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher6"},{"id":"teacher7","role":"teacher","name":"Baba Mohammed Sadat","email":"baba.mohammed.sadat@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher7"},{"id":"teacher8","role":"teacher","name":"Wali Mohammed Hizibillai","email":"wali.mohammed.hizibillai@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher8"},{"id":"teacher9","role":"teacher","name":"Abdul - Manan Mohammed","email":"abdul.manan.mohammed@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher9"},{"id":"teacher10","role":"teacher","name":"Seidu Huzeima","email":"seidu.huzeima@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher10"},{"id":"teacher11","role":"teacher","name":"Umar Zulfawu Gbambiegu","email":"umar.zulfawu.gbambiegu@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher11"},{"id":"teacher12","role":"teacher","name":"Alangea Claudette","email":"alangea.claudette@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher12"},{"id":"teacher13","role":"teacher","name":"Azabugu Kate Anyanbilla","email":"azabugu.kate.anyanbilla@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher13"},{"id":"teacher14","role":"teacher","name":"Alidu Tahiru Rajab","email":"alidu.tahiru.rajab@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher14"},{"id":"teacher15","role":"teacher","name":"Yakubu Ismail","email":"yakubu.ismail@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher15"},{"id":"teacher16","role":"teacher","name":"Umar Abdul Jalil","email":"umar.abdul.jalil@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher16"},{"id":"teacher17","role":"teacher","name":"Abukari Ayisha","email":"abukari.ayisha@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher17"},{"id":"teacher18","role":"teacher","name":"Ibrahim Fantana Hilda","email":"ibrahim.fantana.hilda@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher18"},{"id":"teacher19","role":"teacher","name":"Janet Nsoh","email":"janet.nsoh@kaladan.local","password":"teacher123","phone":"","teacherId":"teacher19"}];
+const emptyDB=()=>({
+ meta:{version:1,createdAt:new Date().toISOString()},
+ settings:{school:"Kaladan E.P Junior High School B",academicYear:"2026/2027",term:"Term 1"},
+ users:[{id:"admin1",role:"admin",name:"Sulemana Ziblim",email:"admin@kaladan.local",password:"admin123",phone:""},...TEACHER_USERS],
+ classes:[{id:"JHS1A",name:"JHS 1A"},{id:"JHS1B",name:"JHS 1B"},{id:"JHS2A",name:"JHS 2A"},{id:"JHS2B",name:"JHS 2B"},{id:"JHS3A",name:"JHS 3A"},{id:"JHS3B",name:"JHS 3B"}],
+ teachers:TEACHER_DEFAULTS.map(x=>({...x})),students:[],scores:{},attendance:{}
+});
+let db=JSON.parse(localStorage.getItem(LOCAL_KEY)||"null")||emptyDB();
+let currentUser=null, page="dashboard", selectedClass="", selectedSubject="", toastMsg="";
+function saveLocal(){localStorage.setItem(LOCAL_KEY,JSON.stringify(db))}
+async function saveCloud(){
+ saveLocal();
+ if(!cloud)return;
+ try{await cloud.collection(CLOUD_COLLECTION).doc(CLOUD_DOC).set({payload:JSON.stringify(db),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})}
+ catch(e){console.error(e);notify("Saved on this device; cloud sync needs Firebase access/rules.")}
+}
+let saveTimer=null;
+function save(){saveLocal();clearTimeout(saveTimer);saveTimer=setTimeout(saveCloud,250)}
+async function loadCloud(){
+ if(!cloud)return;
+ try{
+  const s=await cloud.collection(CLOUD_COLLECTION).doc(CLOUD_DOC).get();
+  if(s.exists&&s.data().payload){db=JSON.parse(s.data().payload);saveLocal();render()}
+ }catch(e){console.error(e)}
+}
+function subscribeCloud(){
+ if(!cloud)return;
+ cloud.collection(CLOUD_COLLECTION).doc(CLOUD_DOC).onSnapshot(s=>{
+  if(s.exists&&s.data().payload){
+   try{db=JSON.parse(s.data().payload);saveLocal();render()}catch(e){}
+  }
+ });
+}
+function uid(p="id"){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function notify(s){toastMsg=s;render();setTimeout(()=>{toastMsg="";render()},2200)}
+function subjectName(id){return subjects.find(x=>x[0]===id)?.[1]||id}
+function teacherName(id){return db.teachers.find(x=>x.id===id)?.name||""}
+function className(id){return db.classes.find(x=>x.id===id)?.name||id}
+function scoreVal(studentId,subjectId,kind){return db.scores[studentId+"_"+subjectId]?.[kind]??""}
+function setScore(studentId,subjectId,kind,val){
+ const key=studentId+"_"+subjectId;
+ if(!db.scores[key])db.scores[key]={ca:"",exam:""};
+ db.scores[key][kind]=val===""?"":Math.max(0,Math.min(100,Number(val)));
+ save(); render()
+}
+function finalScore(studentId,subjectId){
+ const x=db.scores[studentId+"_"+subjectId]||{};
+ const ca=Number(x.ca||0), exam=Number(x.exam||0);
+ return Math.round(((ca/100)*40+(exam/100)*60)*100)/100;
+}
+function grade(n){n=Number(n);return n>=80?"A":n>=70?"B":n>=60?"C":n>=50?"D":n>=40?"E":"F"}
+function login(e){
+ e.preventDefault();
+ const email=document.getElementById("loginEmail").value.trim().toLowerCase(), pass=document.getElementById("loginPass").value;
+ const u=db.users.find(x=>x.email.toLowerCase()===email&&x.password===pass);
+ if(!u)return notify("Incorrect email or password.");
+ currentUser=u; localStorage.setItem("kaladan_session",u.id); page="dashboard";render();loadCloud();subscribeCloud()
+}
+function logout(){currentUser=null;localStorage.removeItem("kaladan_session");render()}
+function openPage(p){page=p;render()}
+function addTeacher(){
+ const name=document.getElementById("tName").value.trim(), cls=document.getElementById("tClass").value, sub=document.getElementById("tSub").value, email=document.getElementById("tEmail").value.trim().toLowerCase(), phone=document.getElementById("tPhone").value.trim(), password=document.getElementById("tPass").value||"teacher123";
+ if(!name||!email)return notify("Name and email are required.");
+ const id=uid("teacher");
+ db.teachers.push({id,name,classId:cls,subjectId:sub,email,phone});
+ db.users.push({id,role:"teacher",name,email,password,phone,teacherId:id});
+ save();openPage("teachers");notify("Teacher added.")
+}
+function addStudent(){
+ const name=document.getElementById("sName").value.trim(), cls=document.getElementById("sClass").value, adm=document.getElementById("sAdm").value.trim();
+ if(!name||!cls)return notify("Student name and class are required.");
+ db.students.push({id:uid("stu"),name,classId:cls,admissionNo:adm});
+ save();openPage("students");notify("Student added.")
+}
+function addClass(){
+ const name=document.getElementById("cName").value.trim();if(!name)return;
+ db.classes.push({id:uid("class"),name});save();openPage("classes");notify("Class added.")
+}
+function deleteTeacher(id){if(!confirm("Remove this teacher record?"))return;db.teachers=db.teachers.filter(x=>x.id!==id);db.users=db.users.filter(x=>x.teacherId!==id);save();render()}
+function deleteStudent(id){if(!confirm("Remove this student? Scores will remain in the database for recovery."))return;db.students=db.students.filter(x=>x.id!==id);save();render()}
+function exportBackup(){
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:"application/json"}));a.download="KaladanLMS-backup-"+new Date().toISOString().slice(0,10)+".json";a.click();URL.revokeObjectURL(a.href)
+}
+function importBackup(e){
+ const f=e.target.files[0];if(!f)return;
+ const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.settings||!x.students||!x.teachers)throw Error();db=x;save();render();notify("Backup restored.")}catch(_){notify("Invalid LMS backup.")}};r.readAsText(f)
+}
+function nav(){
+ const items=[["dashboard","Dashboard","⌂"],["students","Students","👥"],["teachers","Teachers","👨‍🏫"],["gradebook","Gradebook","▦"],["attendance","Attendance","✓"],["resources","Teacher Resource Centre","📚"],["bece","BECE Preparation","🎓"],["classes","Classes","🏫"],["settings","Settings","⚙"]];
+ return `<aside class="sidebar" style="width:245px;background:#fff;border-right:1px solid #e5e7eb;min-height:100vh;padding:18px;position:sticky;top:0;height:100vh">
+ <div style="font-weight:900;font-size:19px;color:#17324d;margin:5px 8px 3px">Kaladan LMS</div><div style="font-size:12px;color:#667085;margin:0 8px 18px">Fresh data edition</div>
+ ${items.map(x=>`<button class="navbtn ${page===x[0]?"active":""}" onclick="openPage('${x[0]}')"><span>${x[2]}</span>${x[1]}</button>`).join("")}
+ <div style="margin-top:20px;border-top:1px solid #eee;padding-top:14px"><button class="navbtn" onclick="exportBackup()">⬇ Backup data</button><label class="navbtn" style="cursor:pointer">⬆ Restore data<input type="file" accept=".json" onchange="importBackup(event)" style="display:none"></label><button class="navbtn" onclick="logout()">↪ Sign out</button></div>
+ </aside>`
+}
+function header(){return `<header style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px"><div><div style="font-size:13px;color:#667085">${esc(db.settings.academicYear)} · ${esc(db.settings.term)}</div><h1 style="margin:2px 0;font-size:25px">${pageTitle()}</h1></div><div class="pill">${esc(currentUser.name)} · ${esc(currentUser.role)}</div></header>`}
+function pageTitle(){return ({dashboard:"Dashboard",students:"Students",teachers:"Teachers",gradebook:"Gradebook",attendance:"Attendance",resources:"Teacher Resource Centre",bece:"BECE Preparation",classes:"Classes",settings:"Settings"})[page]||"Kaladan LMS"}
+function dashboard(){
+ const total=db.students.length, teachers=db.teachers.length, entered=Object.keys(db.scores).length;
+ return `<div class="grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">${[
+ ["Students",total,"👥"],["Teachers",teachers,"👨‍🏫"],["Score records",entered,"▦"]
+ ].map(x=>`<div class="card" style="padding:18px"><div style="font-size:28px">${x[2]}</div><div style="color:#667085;margin-top:8px">${x[0]}</div><div style="font-size:28px;font-weight:900">${x[1]}</div></div>`).join("")}</div>
+ <div class="card" style="padding:20px;margin-top:14px"><h2 style="margin-top:0">Start here</h2><p style="color:#667085">This is a fresh LMS database. Enter your classes, teachers and students first, then use Gradebook for marks. Continuous Assessment is scaled to 40 and Examination to 60 automatically.</p><div style="display:flex;flex-wrap:wrap;gap:10px"><button class="btn primary" onclick="openPage('teachers')">Add teachers</button><button class="btn primary" onclick="openPage('students')">Add students</button><button class="btn secondary" onclick="openPage('gradebook')">Open gradebook</button><button class="btn secondary" onclick="openPage('resources')">Teacher resources</button></div></div>
+ <div class="card" style="padding:20px;margin-top:14px"><h2 style="margin-top:0">Important</h2><p style="margin-bottom:0;color:#667085">Use Backup data regularly. Cloud synchronisation uses the Kaladan Firebase project and a new document named <b>database_fresh_v1</b>, so this fresh edition does not overwrite the old LMS document.</p></div>`
+}
+function teachers(){
+ return `<div class="grid2" style="display:grid;grid-template-columns:360px 1fr;gap:14px"><div class="card" style="padding:18px"><h2 style="margin-top:0">Add teacher</h2>
+ <input id="tName" class="field" placeholder="Full name"><br><br><select id="tClass" class="field">${db.classes.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select><br><br>
+ <select id="tSub" class="field">${subjects.map(s=>`<option value="${s[0]}">${esc(s[1])}</option>`).join("")}</select><br><br>
+ <input id="tEmail" class="field" type="email" placeholder="Email — used for login"><br><br><input id="tPhone" class="field" placeholder="Phone number"><br><br><input id="tPass" class="field" placeholder="Initial password" value="teacher123"><br><br><button class="btn primary" onclick="addTeacher()">Save teacher</button>
+ </div><div class="card" style="padding:18px"><h2 style="margin-top:0">Teacher records</h2><div class="tablewrap"><table class="table"><thead><tr><th>Name</th><th>Class</th><th>Subject</th><th>Email</th><th>Phone Number</th><th></th></tr></thead><tbody>${db.teachers.map(t=>`<tr><td>${esc(t.name)}</td><td>${esc(className(t.classId))}</td><td>${esc(subjectName(t.subjectId))}</td><td>${esc(t.email)}</td><td>${esc(t.phone)}</td><td><button class="btn danger" onclick="deleteTeacher('${t.id}')">Remove</button></td></tr>`).join("")||`<tr><td colspan="6">No teachers entered yet.</td></tr>`}</tbody></table></div></div></div>`
+}
+function students(){
+ return `<div class="card" style="padding:18px;margin-bottom:14px"><h2 style="margin-top:0">Add student</h2><div class="grid3" style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:10px"><input id="sName" class="field" placeholder="Student full name"><input id="sAdm" class="field" placeholder="Admission number"><select id="sClass" class="field">${db.classes.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select></div><br><button class="btn primary" onclick="addStudent()">Save student</button></div>
+ <div class="card" style="padding:18px"><h2 style="margin-top:0">Students (${db.students.length})</h2><div class="tablewrap"><table class="table"><thead><tr><th>#</th><th>Admission No.</th><th>Name</th><th>Class</th><th></th></tr></thead><tbody>${db.students.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.admissionNo)}</td><td>${esc(s.name)}</td><td>${esc(className(s.classId))}</td><td><button class="btn danger" onclick="deleteStudent('${s.id}')">Remove</button></td></tr>`).join("")||`<tr><td colspan="5">No students entered yet.</td></tr>`}</tbody></table></div></div>`
+}
+function classes(){
+ return `<div class="card" style="padding:18px"><h2 style="margin-top:0">Classes</h2><div style="display:flex;gap:10px;max-width:600px"><input id="cName" class="field" placeholder="e.g. JHS 3B"><button class="btn primary" onclick="addClass()">Add</button></div><div style="margin-top:18px;display:flex;flex-wrap:wrap;gap:10px">${db.classes.map(c=>`<span class="pill">${esc(c.name)} · ${db.students.filter(s=>s.classId===c.id).length} students</span>`).join("")}</div></div>`
+}
+function gradebook(){
+ if(!selectedClass)selectedClass=db.classes[0]?.id||"";
+ const sts=db.students.filter(s=>s.classId===selectedClass);
+ if(!selectedSubject)selectedSubject=subjects[0][0];
+ return `<div class="card" style="padding:18px"><div style="display:flex;gap:10px;flex-wrap:wrap"><select class="field" style="max-width:230px" onchange="selectedClass=this.value;render()">${db.classes.map(c=>`<option value="${c.id}" ${selectedClass===c.id?"selected":""}>${esc(c.name)}</option>`).join("")}</select><select class="field" style="max-width:260px" onchange="selectedSubject=this.value;render()">${subjects.map(s=>`<option value="${s[0]}" ${selectedSubject===s[0]?"selected":""}>${esc(s[1])}</option>`).join("")}</select></div>
+ <p style="color:#667085;font-size:13px">Enter raw CA mark out of 100 and Examination mark out of 100. LMS automatically calculates <b>CA × 40%</b> + <b>Exam × 60%</b>.</p>
+ <div class="tablewrap"><table class="table"><thead><tr><th>#</th><th>Student</th><th>CA /100</th><th>Exam /100</th><th>CA /40</th><th>Exam /60</th><th>Total /100</th><th>Grade</th></tr></thead><tbody>${sts.map((s,i)=>{const ca=Number(scoreVal(s.id,selectedSubject,"ca")||0),ex=Number(scoreVal(s.id,selectedSubject,"exam")||0),ca40=Math.round(ca*.4*100)/100,ex60=Math.round(ex*.6*100)/100,total=Math.round((ca40+ex60)*100)/100;return `<tr><td>${i+1}</td><td><b>${esc(s.name)}</b><br><small>${esc(s.admissionNo)}</small></td><td><input class="field score" type="number" min="0" max="100" value="${scoreVal(s.id,selectedSubject,"ca")}" onchange="setScore('${s.id}','${selectedSubject}','ca',this.value)"></td><td><input class="field score" type="number" min="0" max="100" value="${scoreVal(s.id,selectedSubject,"exam")}" onchange="setScore('${s.id}','${selectedSubject}','exam',this.value)"></td><td>${ca40}</td><td>${ex60}</td><td><b>${total}</b></td><td><span class="pill">${grade(total)}</span></td></tr>`}).join("")||`<tr><td colspan="8">No students in this class yet.</td></tr>`}</tbody></table></div></div>`
+}
+function attendance(){
+ const date=new Date().toISOString().slice(0,10), cls=selectedClass||db.classes[0]?.id||"";selectedClass=cls;
+ return `<div class="card" style="padding:18px"><h2 style="margin-top:0">Daily attendance</h2><div style="display:flex;gap:10px;flex-wrap:wrap"><input id="attDate" class="field" type="date" value="${date}" style="max-width:180px"><select class="field" style="max-width:220px" onchange="selectedClass=this.value;render()">${db.classes.map(c=>`<option value="${c.id}" ${cls===c.id?"selected":""}>${esc(c.name)}</option>`).join("")}</select></div><br>${db.students.filter(s=>s.classId===cls).map(s=>`<label style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eee"><span>${esc(s.name)}</span><select class="field" style="max-width:150px" onchange="setAttendance('${s.id}',this.value)"><option>Present</option><option>Absent</option><option>Late</option></select></label>`).join("")||"No students in this class."}</div>`
+}
+function setAttendance(studentId,status){const date=document.getElementById("attDate")?.value||new Date().toISOString().slice(0,10);db.attendance[date+"_"+studentId]=status;save();notify("Attendance saved.")}
+function resources(){
+ const links=[
+ ["WAEC BECE guidelines","Official WAEC guidelines, scheme and structure","https://waecgh.org/bece/"],
+ ["WAEC Chief Examiners' Reports","Use reports to identify common weaknesses and improve teaching","https://waecgh.org/chief-examiners-report/"],
+ ["WAEC BECE timetable","Official examination timetable and updates","https://waecgh.org/timetables/"],
+ ["Ghana Education Service","Official education service information","https://ges.gov.gh/"],
+ ["Khan Academy","Free lessons, practice and explanations","https://www.khanacademy.org/"],
+ ["CK-12","Free STEM textbooks and interactive learning","https://www.ck12.org/"],
+ ["PhET Interactive Simulations","Interactive science and mathematics simulations","https://phet.colorado.edu/"],
+ ["GeoGebra","Interactive mathematics tools","https://www.geogebra.org/"]
+ ];
+ return `<div class="grid2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px">${links.map(x=>`<a class="card" href="${x[2]}" target="_blank" rel="noopener" style="padding:18px;text-decoration:none;color:inherit"><h3 style="margin:0 0 7px;color:#17324d">${esc(x[0])} ↗</h3><p style="margin:0;color:#667085">${esc(x[1])}</p></a>`).join("")}</div><div class="card" style="padding:18px;margin-top:14px"><h3>Library policy</h3><p style="color:#667085;margin-bottom:0">This is a ready-to-access teaching library. Teachers do not upload files here. External resources open from their original providers.</p></div>`
+}
+function bece(){
+ return `<div class="card" style="padding:18px;margin-bottom:14px"><h2 style="margin-top:0">BECE Preparation — 2020–2026</h2><p style="color:#667085">Use official WAEC material first. Past questions and marking schemes should be obtained from lawful/official sources rather than copied into the LMS.</p></div>
+ <div class="grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">${[2020,2021,2022,2023,2024,2025,2026].map(y=>`<div class="card" style="padding:16px"><h3 style="margin-top:0">${y} BECE</h3><p style="color:#667085">Past questions, revision and examiner guidance.</p><a class="btn secondary" href="https://waecgh.org/" target="_blank">Open WAEC ↗</a></div>`).join("")}</div>
+ <div class="card" style="padding:18px;margin-top:14px"><h3>Recommended preparation workflow</h3><ol style="color:#475467;line-height:1.8"><li>Teach the topic and practise worked examples.</li><li>Use past questions by subject and year.</li><li>Mark with the appropriate scheme where available.</li><li>Record weak areas and reteach them.</li><li>Repeat timed practice before the examination.</li></ol></div>`
+}
+function settings(){
+ return `<div class="grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><div class="card" style="padding:18px"><h2 style="margin-top:0">School settings</h2><label>School name<input id="setSchool" class="field" value="${esc(db.settings.school)}"></label><br><br><label>Academic year<input id="setYear" class="field" value="${esc(db.settings.academicYear)}"></label><br><br><label>Term<input id="setTerm" class="field" value="${esc(db.settings.term)}"></label><br><br><button class="btn primary" onclick="db.settings.school=document.getElementById('setSchool').value;db.settings.academicYear=document.getElementById('setYear').value;db.settings.term=document.getElementById('setTerm').value;save();notify('Settings saved.')">Save settings</button></div>
+ <div class="card" style="padding:18px"><h2 style="margin-top:0">Data protection</h2><p style="color:#667085">The app keeps a local copy and synchronises the same database document to Firebase when access is available.</p><button class="btn secondary" onclick="exportBackup()">Download backup</button><br><br><label class="btn secondary">Restore backup<input type="file" accept=".json" onchange="importBackup(event)" style="display:none"></label><hr><p style="font-size:13px;color:#667085">Fresh edition storage keys are separate from the previous LMS, so starting here does not intentionally import old browser data.</p></div></div>`
+}
+function appPage(){
+ let body=page==="dashboard"?dashboard():page==="students"?students():page==="teachers"?teachers():page==="gradebook"?gradebook():page==="attendance"?attendance():page==="resources"?resources():page==="bece"?bece():page==="classes"?classes():settings();
+ return `<div class="layout" style="display:flex;min-height:100vh">${nav()}<main class="main" style="flex:1;padding:28px;max-width:1500px">${header()}${body}</main></div><div class="mobilebar" style="position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;padding:8px;z-index:50"><select class="field" onchange="openPage(this.value)">${["dashboard","students","teachers","gradebook","attendance","resources","bece","classes","settings"].map(p=>`<option value="${p}" ${page===p?"selected":""}>${pageTitleFor(p)}</option>`).join("")}</select></div>${toastMsg?`<div class="toast card" style="padding:12px 16px">${esc(toastMsg)}</div>`:""}`
+}
+function pageTitleFor(p){return ({dashboard:"Dashboard",students:"Students",teachers:"Teachers",gradebook:"Gradebook",attendance:"Attendance",resources:"Teacher Resource Centre",bece:"BECE Preparation",classes:"Classes",settings:"Settings"})[p]}
+function loginPage(){return `<div style="min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(135deg,#eef4f8,#f8fafc)"><form onsubmit="login(event)" class="card" style="width:min(430px,100%);padding:28px"><div style="font-size:28px;font-weight:900;color:#17324d">Kaladan LMS</div><p style="color:#667085">Fresh data edition</p><input id="loginEmail" class="field" type="email" placeholder="Email" value="admin@kaladan.local" required><br><br><input id="loginPass" class="field" type="password" placeholder="Password" value="admin123" required><br><br><button class="btn primary" style="width:100%">Sign in</button><p style="font-size:12px;color:#667085;margin-bottom:0">Fresh starter account: admin@kaladan.local / admin123. Change the password by editing the user record in the database before real deployment.</p></form></div>`}
+function render(){document.getElementById("root").innerHTML=currentUser?appPage():loginPage()}
+const sid=localStorage.getItem("kaladan_session");if(sid)currentUser=db.users.find(u=>u.id===sid)||null;
+render();if(currentUser){loadCloud();subscribeCloud()}
+if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(console.error));
+</script>
+</body>
+</html>
