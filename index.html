@@ -2515,6 +2515,76 @@ function GradebookPage({ user, toast }) {
     setExamTouched((prev) => ({ ...prev, [studentId]: true }));
   }
 
+  function buildScoreRecords(prevScores) {
+   ...
+}
+
+  function buildScoreRecords(prevScores) {
+  let scores = [...(prevScores || [])];
+
+  students.forEach((student) => {
+    const ca = calculateCA(student.id).value;
+    const exam = examValue(student.id);
+
+    const existingIndex = scores.findIndex(
+      (x) =>
+        x.studentId === student.id &&
+        x.subjectId === subjectId &&
+        x.termId === termId
+    );
+
+    // Do not create a score record if the student has no CA
+    // and no examination mark.
+    if (ca === null && exam === null) return;
+
+    const record = {
+      ...(existingIndex >= 0 ? scores[existingIndex] : {}),
+
+      id:
+        existingIndex >= 0
+          ? scores[existingIndex].id
+          : uid("score"),
+
+      studentId: student.id,
+      subjectId,
+      termId,
+
+      // CA is already scaled to 40
+      classMark:
+        ca === null
+          ? 0
+          : Number(ca.toFixed(2)),
+
+      // Examination is already scaled to 60
+      examMark:
+        exam === null
+          ? 0
+          : Number(exam.toFixed(2)),
+
+      // Final total is out of 100
+      total: Number(
+        ((ca || 0) + (exam || 0)).toFixed(2)
+      ),
+
+      updatedAt: Date.now(),
+
+      // Helps identify that the record came from Gradebook
+      source: "gradebook"
+    };
+
+    if (existingIndex >= 0) {
+      scores[existingIndex] = record;
+    } else {
+      scores.push(record);
+    }
+  });
+
+  return scores;
+}
+
+function saveDraft() {
+   ...
+}
   function saveDraft() {
     if (locked || submitted) {
       toast("These results cannot be edited in their current status");
@@ -2565,14 +2635,20 @@ function GradebookPage({ user, toast }) {
         updatedAt: now
       };
 
-      return {
-        ...prev,
-        resultSubmissions: old
-          ? prev.resultSubmissions.map((x) =>
-              x.id === old.id ? record : x
-            )
-          : [...(prev.resultSubmissions || []), record]
-      };
+     return {
+  ...prev,
+
+  // Save Gradebook results into the main scores collection
+  // so report cards and ranking can use them.
+  scores: buildScoreRecords(prev.scores),
+
+  // Keep the existing Gradebook submission record.
+  resultSubmissions: old
+    ? (prev.resultSubmissions || []).map((x) =>
+        x.id === old.id ? record : x
+      )
+    : [...(prev.resultSubmissions || []), record]
+};
     });
 
     toast("Draft saved");
@@ -2660,15 +2736,20 @@ function GradebookPage({ user, toast }) {
         updatedAt: now
       };
 
-      return {
-        ...prev,
-        resultSubmissions: old
-          ? prev.resultSubmissions.map((x) =>
-              x.id === old.id ? record : x
-            )
-          : [...(prev.resultSubmissions || []), record]
-      };
-    });
+     return {
+  ...prev,
+
+  // Save the calculated Gradebook results
+  // into the main scores collection.
+  scores: buildScoreRecords(prev.scores),
+
+  // Preserve the existing submission workflow.
+  resultSubmissions: old
+    ? (prev.resultSubmissions || []).map((x) =>
+        x.id === old.id ? record : x
+      )
+    : [...(prev.resultSubmissions || []), record]
+};
 
     toast("Results submitted for headteacher review");
   }
