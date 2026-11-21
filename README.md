@@ -1,4 +1,4 @@
-# Kaladan E.P Junior High School B — LMS (PWA)
+# Kaladan E.P Junior High School B — School Management Portal (PWA)
 
 A self-contained, installable Learning Management System. No server, no build step —
 just static files, deployable for free on GitHub Pages.
